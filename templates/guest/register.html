@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroMiles</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container py-5">
+        <div class="text-center mb-4">
+            <div class="bg-primary text-white rounded d-inline-flex justify-content-center align-items-center mb-2" style="width: 45px; height: 45px;">
+                <i class="bi bi-airplane-fill fs-4"></i>
+            </div>
+            <h3 class="fw-bold mb-1">Daftar Akun Baru</h3>
+            <p class="text-muted small">Bergabung dengan program AeroMiles</p>
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-body p-4 p-md-5">
+                <h6 class="fw-bold mb-1">Registrasi</h6>
+                <p class="text-muted mb-4 small">Pilih peran dan lengkapi data Anda</p>
+
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="role" id="roleMember" value="member" checked>
+                                <label class="btn btn-outline-primary" for="roleMember">Member</label>
+
+                                <input type="radio" class="btn-check" name="role" id="roleStaf" value="staf">
+                                <label class="btn btn-outline-primary" for="roleStaf">Staf</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Password *</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirm_password" class="form-label">Konfirmasi Password *</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 text-muted">
+                    <h6 class="fw-bold mb-3">Data Pribadi</h6>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="salutation" class="form-label">Salutation *</label>
+                            <select class="form-select" id="salutation" name="salutation" required>
+                                <option value="" disabled selected>Pilih</option>
+                                <option value="Mr.">Mr.</option>
+                                <option value="Mrs.">Mrs.</option>
+                                <option value="Ms.">Ms.</option>
+                                <option value="Dr.">Dr.</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="first_mid_name" class="form-label">Nama Depan-Tengah *</label>
+                            <input type="text" class="form-control" id="first_mid_name" name="first_mid_name" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label">Nama Belakang *</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="kewarganegaraan" class="form-label">Kewarganegaraan *</label>
+                            <input type="text" class="form-control" id="kewarganegaraan" name="kewarganegaraan" placeholder="Pilih negara" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="country_code" class="form-label">Country Code *</label>
+                            <select class="form-select" id="country_code" name="country_code" required>
+                                <option value="+62">+62 (Indonesia)</option>
+                                <option value="+1">+1 (USA)</option>
+                                <option value="+65">+65 (Singapore)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="mobile_number" class="form-label">Nomor HP *</label>
+                            <input type="tel" class="form-control" id="mobile_number" name="mobile_number" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tanggal_lahir" class="form-label">Tanggal Lahir *</label>
+                        <input type="date" class="form-control" id="tanggal_lahir" name="tanggal_lahir" required>
+                    </div>
+
+                    <div id="stafFields" style="display: none;">
+                        <hr class="my-4 text-muted">
+                        <h6 class="fw-bold mb-3">Data Staf</h6>
+                        <div class="mb-3">
+                            <label for="kode_maskapai" class="form-label">Kode Maskapai *</label>
+                            <select class="form-select" id="kode_maskapai" name="kode_maskapai">
+                                <option value="" disabled selected>Pilih maskapai</option>
+                                <option value="GA">Garuda Indonesia</option>
+                                <option value="SQ">Singapore Airlines</option>
+                                <option value="MH">Malaysia Airlines</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-aeromiles w-100 fw-bold py-2">Daftar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <p class="small text-muted">Sudah punya akun? <a href="{% url 'login' %}" class="text-decoration-none text-aeromiles fw-semibold">Login di sini</a></p>
+        </div>
+    </div>
+
+    <script>
+        const roleMember = document.getElementById('roleMember');
+        const roleStaf = document.getElementById('roleStaf');
+        const stafFields = document.getElementById('stafFields');
+        const kodeMaskapai = document.getElementById('kode_maskapai');
+
+        function toggleFields() {
+            if (roleStaf.checked) {
+                stafFields.style.display = 'block';
+                kodeMaskapai.setAttribute('required', '');
+            } else {
+                stafFields.style.display = 'none';
+                kodeMaskapai.removeAttribute('required');
+            }
+        }
+
+        roleMember.addEventListener('change', toggleFields);
+        roleStaf.addEventListener('change', toggleFields);
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

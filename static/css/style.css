@@ -1,0 +1,31 @@
+body {
+    background-color: #f8f9fa; 
+}
+
+.text-aeromiles {
+    color: #002b5e;
+}
+
+.bg-aeromiles {
+    background-color: #002b5e;
+}
+
+.btn-aeromiles {
+    background-color: #002b5e;
+    color: white;
+}
+
+.btn-aeromiles:hover {
+    background-color: #001a38;
+    color: white;
+}
+
+.form-label { 
+    font-size: 0.85rem; 
+    font-weight: 600; 
+}
+
+.card { 
+    max-width: 700px; 
+    margin: 0 auto; 
+}

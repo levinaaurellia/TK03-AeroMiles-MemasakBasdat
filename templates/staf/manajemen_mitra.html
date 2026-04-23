@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0" style="color: #000;">Kelola Mitra</h3>
+        <button class="btn btn-primary rounded-3 px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalTambahMitra" style="font-size: 0.9rem;">
+            <i class="bi bi-plus"></i> Tambah Mitra
+        </button>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4" style="max-width: 100%;">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead class="border-bottom" style="color: #6c757d; font-size: 0.85rem;">
+                        <tr>
+                            <th class="fw-normal pb-3 ps-3">Email</th>
+                            <th class="fw-normal pb-3">Nama Mitra</th>
+                            <th class="fw-normal pb-3">Tanggal Kerja Sama</th>
+                            <th class="fw-normal pb-3 text-center" style="width: 100px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in mitra_list %}
+                        <tr class="border-bottom">
+                            <td class="py-3 ps-3" style="font-size: 0.9rem;">{{ m.email_mitra }}</td>
+                            <td class="py-3 fw-bold" style="font-size: 0.9rem; color: #000;">{{ m.nama_mitra }}</td>
+                            <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ m.tanggal_kerja_sama }}</td>
+                            <td class="py-3 text-center">
+                                <a href="#" class="text-decoration-none text-secondary me-3" data-bs-toggle="modal" data-bs-target="#modalEdit{{ forloop.counter }}" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="#" class="text-decoration-none text-danger" data-bs-toggle="modal" data-bs-target="#modalHapus{{ forloop.counter }}" title="Hapus">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="modalEdit{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content rounded-4 border-0">
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="update">
+                                        <input type="hidden" name="email" value="{{ m.email_mitra }}">
+                                        <div class="modal-header border-0 pb-0 mt-2 px-4">
+                                            <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Edit Mitra</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body px-4 pt-3 pb-2">
+                                            <div class="mb-3">
+                                                <label class="form-label">Email Mitra</label>
+                                                <input type="email" class="form-control py-2" value="{{ m.email_mitra }}" disabled>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Nama Mitra</label>
+                                                <input type="text" name="nama" class="form-control py-2" value="{{ m.nama_mitra }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Tanggal Kerja Sama</label>
+                                                <input type="date" name="tanggal" class="form-control py-2" value="{{ m.tanggal_kerja_sama|date:'Y-m-d' }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                                            <button type="submit" class="btn btn-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Simpan</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="modalHapus{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content rounded-4 border-0">
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="id_penyedia" value="{{ m.id_penyedia }}">
+                                        <div class="modal-header border-0 pb-0 mt-2 px-4">
+                                            <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Hapus Mitra?</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body px-4 pt-3 pb-2 text-muted" style="font-size: 0.9rem;">
+                                            Penghapusan mitra akan berpengaruh pada hadiah yang disediakan oleh mitra. Tindakan ini tidak dapat dibatalkan.
+                                        </div>
+                                        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4 py-2" data-bs-dismiss="modal" style="font-size: 0.9rem;">Batal</button>
+                                            <button type="submit" class="btn btn-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Hapus</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted" style="font-size: 0.9rem;">Belum ada data mitra terdaftar.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalTambahMitra" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="modal-header border-0 pb-0 mt-2 px-4">
+                    <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Tambah Mitra Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pt-3 pb-2">
+                    <div class="mb-3">
+                        <label class="form-label">Email Mitra</label>
+                        <input type="email" name="email" class="form-control py-2" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nama Mitra</label>
+                        <input type="text" name="nama" class="form-control py-2" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Kerja Sama</label>
+                        <input type="date" name="tanggal" class="form-control py-2" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="submit" class="btn btn-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

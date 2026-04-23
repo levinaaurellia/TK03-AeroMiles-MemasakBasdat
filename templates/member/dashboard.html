@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-5">
+        <h2 class="fw-bold mb-1" style="color: #000;">Dashboard</h2>
+        <p class="text-muted" style="font-size: 1.1rem;">Selamat datang, Ms. Saikhah Ummu</p>
+    </div>
+
+    <div class="mb-4">
+        <div class="card shadow-sm border-0 rounded-4 p-3">
+            <h4 class="fw-bold mb-4" style="color: #000;">Informasi Pribadi</h4>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <p class="text-muted mb-0">Nama lengkap:</p>
+                        <p class="fw-bold">Ms. Saikhah Ummu</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted mb-0">Email:</p>
+                        <p class="fw-bold">SaikhahUmmu@gmail.com</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted mb-0">Telepon:</p>
+                        <p class="fw-bold">+62 87889064633</p>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <p class="text-muted mb-0">Kewarganegaraan:</p>
+                        <p class="fw-bold">Indonesia</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted mb-0">Tanggal Lahir</p>
+                        <p class="fw-bold">2005-10-02</p>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4" >
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 p-3 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-people text-primary fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Nomor Member</p>
+                        <p class="fw-bold mb-0">50001</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 p-3 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-award text-warning fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Tier</p>
+                        <span class="badge rounded-pill text-bg-warning px-3 py-2">Gold</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 p-3 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-airplane text-info fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Total Miles</p>
+                        <p class="fw-bold mb-0">45,000</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 p-3 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-trophy text-success fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Award Miles</p>
+                        <p class="fw-bold mb-0">32,000</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card shadow-sm border-0 rounded-4 p-3">
+        <div class="card-body p-4">
+            <h4 class="fw-bold mb-4">5 Transaksi Terbaru</h4>
+
+            <div class="d-flex flex-column gap-3">
+
+            <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background-color: #f8f9fc;">
+                <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-white text-dark border fw-normal px-3 py-2 rounded-pill">Transfer</span>
+                <span class="text-dark" style="font-size: 0.95rem;">2025-01-15 10:30</span>
+                </div>
+                <span class="text-danger fw-semibold" style="font-size: 0.95rem;">-5,000 miles</span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background-color: #f8f9fc;">
+                <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-white text-dark border fw-normal px-3 py-2 rounded-pill">Redeem</span>
+                <span class="text-dark" style="font-size: 0.95rem;">2025-01-20 16:00</span>
+                </div>
+                <span class="text-danger fw-semibold" style="font-size: 0.95rem;">-3,000 miles</span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background-color: #f8f9fc;">
+                <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-white text-dark border fw-normal px-3 py-2 rounded-pill">Package</span>
+                <span class="text-dark" style="font-size: 0.95rem;">2025-03-01 08:00</span>
+                </div>
+                <span class="text-success fw-semibold" style="font-size: 0.95rem;">+10,000 miles</span>
+            </div>
+
+            </div>
+        </div>
+        </div>
+</div>
+{% endblock %}

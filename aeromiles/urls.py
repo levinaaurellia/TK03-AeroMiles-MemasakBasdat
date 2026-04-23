@@ -23,6 +23,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
+    path('dashboard/member/', views.dashboard_member, name='dashboard_member'),
+    path('dashboard/staf/', views.dashboard_staf, name='dashboard_staf'),
+    path('kelola-hadiah/', views.kelola_hadiah, name='kelola_hadiah'),
+    path('kelola-mitra/', views.kelola_mitra, name='kelola_mitra'),
 
     path('', RedirectView.as_view(url='/login/', permanent=False)),
 ]

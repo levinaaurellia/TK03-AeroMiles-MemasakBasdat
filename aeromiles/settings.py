@@ -75,8 +75,16 @@ WSGI_APPLICATION = 'aeromiles.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'neondb', # Sesuaikan dengan nama db di Neon
+        'USER': 'neondb_owner',
+        'PASSWORD': 'npg_ftIWzES2T9Bn',
+        'HOST': 'ep-hidden-water-a1bkija8.ap-southeast-1.aws.neon.tech',
+        'PORT': '5432',
+        'OPTIONS': {
+            'options': '-c search_path=aeromiles_mb', # Mengarahkan otomatis ke skema Anda
+            'sslmode': 'require',
+        }
     }
 }
 

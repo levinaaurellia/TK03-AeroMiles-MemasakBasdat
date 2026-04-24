@@ -1,12 +1,135 @@
 from django.shortcuts import render, redirect
 from django.db import connection
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password, check_password
+from datetime import date
+from .decorators import role_required
 
 def login_view(request):
+    # Jika sudah login, cegah akses halaman login
+    if request.session.get('email'):
+        if request.session.get('role') == 'staf':
+             return redirect('dashboard_staf')
+        return redirect('dashboard_member')
+    
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        with connection.cursor() as cursor:
+            # Cari data pengguna berdasarkan email
+            cursor.execute("SELECT email, password FROM PENGGUNA WHERE email = %s", [email])
+            user = cursor.fetchone()
+            
+            # Cocokkan password
+            if user and password == user[1]: 
+                
+                # Cek apakah user adalah staf
+                cursor.execute("SELECT email FROM STAF WHERE email = %s", [email])
+                if cursor.fetchone():
+                    request.session['email'] = email
+                    request.session['role'] = 'staf'
+                    return redirect('dashboard_staf')
+                
+                # Cek apakah user adalah member
+                cursor.execute("SELECT email FROM MEMBER WHERE email = %s", [email])
+                if cursor.fetchone():
+                    request.session['email'] = email
+                    request.session['role'] = 'member'
+                    return redirect('dashboard_member')
+                
+            else:
+                messages.error(request, 'Email atau password salah.')
+                
     return render(request, 'guest/login.html')
 
 def register_view(request):
+    # Jika sudah login, cegah akses halaman register
+    if request.session.get('email'):
+        if request.session.get('role') == 'staf':
+             return redirect('dashboard_staf')
+        return redirect('dashboard_member')
+    
+    if request.method == 'POST':
+        role = request.POST.get('role')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        salutation = request.POST.get('salutation')
+        first_mid_name = request.POST.get('first_mid_name')
+        last_name = request.POST.get('last_name')
+        kewarganegaraan = request.POST.get('kewarganegaraan')
+        country_code = request.POST.get('country_code')
+        mobile_number = request.POST.get('mobile_number')
+        tanggal_lahir = request.POST.get('tanggal_lahir')
+        
+        if password != confirm_password:
+            messages.error(request, 'Password dan konfirmasi password tidak cocok.')
+            return redirect('register')
+            
+        # Hash password sebelum disimpan
+        # hashed_password = make_password(password) 
+        hashed_password = password # TODO: implementasi hashing password
+        
+        with connection.cursor() as cursor:
+            # Validasi duplikasi email
+            cursor.execute("SELECT email FROM PENGGUNA WHERE email = %s", [email])
+            if cursor.fetchone():
+                messages.error(request, 'Email sudah terdaftar.')
+                return redirect('register')
+            
+            try:
+                # Insert ke tabel PENGGUNA
+                cursor.execute("""
+                    INSERT INTO PENGGUNA (email, password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, [email, hashed_password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan])
+                
+                # Insert ke tabel spesifik berdasarkan Role
+                if role == 'member':
+                    # Auto-generate Nomor Member format M[XXXX]
+                    cursor.execute("SELECT COUNT(*) FROM MEMBER")
+                    count = cursor.fetchone()[0] + 1
+                    nomor_member = f"M{count:04d}"
+                    
+                    # Ambil ID tier terendah
+                    cursor.execute("SELECT id_tier FROM TIER ORDER BY minimal_tier_miles ASC LIMIT 1")
+                    tier_row = cursor.fetchone()
+                    id_tier = tier_row[0] if tier_row else None
+                    
+                    cursor.execute("""
+                        INSERT INTO MEMBER (email, nomor_member, tanggal_bergabung, id_tier, award_miles, total_miles)
+                        VALUES (%s, %s, %s, %s, 0, 0)
+                    """, [email, nomor_member, date.today(), id_tier])
+                    
+                elif role == 'staf':
+                    kode_maskapai = request.POST.get('kode_maskapai')
+                    
+                    # Auto-generate ID Staf format S[XXXX]
+                    cursor.execute("SELECT COUNT(*) FROM STAF")
+                    count = cursor.fetchone()[0] + 1
+                    id_staf = f"S{count:04d}"
+                    
+                    cursor.execute("""
+                        INSERT INTO STAF (email, id_staf, kode_maskapai)
+                        VALUES (%s, %s, %s)
+                    """, [email, id_staf, kode_maskapai])
+                    
+                messages.success(request, 'Registrasi berhasil! Silakan login.')
+                return redirect('login')
+                
+            except Exception as e:
+                messages.error(request, f'Terjadi kesalahan: {str(e)}')
+                return redirect('register')
+
     return render(request, 'guest/register.html')
 
+def logout_view(request):
+    # Mengakhiri session pengguna
+    request.session.flush()
+    return redirect('login')
+
+@role_required('member')
 def dashboard_member(request):
     with connection.cursor() as cursor:
         # Mengambil ringkasan data untuk dashboard
@@ -23,6 +146,7 @@ def dashboard_member(request):
     }
     return render(request, 'member/dashboard.html', context)
 
+@role_required('staf')
 def dashboard_staf(request):
     with connection.cursor() as cursor:
         # Mengambil ringkasan data untuk dashboard
@@ -39,6 +163,7 @@ def dashboard_staf(request):
     }
     return render(request, 'staf/dashboard.html', context)
 
+@role_required('staf')
 def kelola_mitra(request):
     with connection.cursor() as cursor:
         if request.method == 'POST':
@@ -81,6 +206,7 @@ def kelola_mitra(request):
         
     return render(request, 'staf/manajemen_mitra.html', {'mitra_list': mitra_list})
 
+@role_required('staf')
 def kelola_hadiah(request):
     with connection.cursor() as cursor:
         if request.method == 'POST':

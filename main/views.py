@@ -262,3 +262,21 @@ def kelola_hadiah(request):
         'hadiah_list': hadiah_list, 
         'penyedia_list': penyedia_list
     })
+
+@role_required('member')
+def daftar_claim_member(request):
+    email_user = request.session.get('email')
+    with connection.cursor() as cursor:
+        # Mengambil klaim hanya milik member yang sedang login
+        cursor.execute("""
+            SELECT *
+            FROM claim_missing_miles
+            WHERE email_member = %s
+            ORDER BY tanggal_penerbangan DESC
+        """, [email_user])
+        
+        columns = [col[0] for col in cursor.description]
+        claims = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        
+    return render(request, 'member/daftar_claim.html', {'claims': claims})
+

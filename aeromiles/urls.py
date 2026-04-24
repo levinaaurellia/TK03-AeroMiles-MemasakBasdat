@@ -28,6 +28,7 @@ urlpatterns = [
     path('dashboard/staf/', views.dashboard_staf, name='dashboard_staf'),
     path('kelola-hadiah/', views.kelola_hadiah, name='kelola_hadiah'),
     path('kelola-mitra/', views.kelola_mitra, name='kelola_mitra'),
+    path('member/claim-missing-miles/', views.daftar_claim_member, name='daftar_claim_member'),
 
     path('', RedirectView.as_view(url='/login/', permanent=False)),
 ]

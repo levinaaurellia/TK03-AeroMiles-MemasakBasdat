@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="font-weight-bold">Klaim Missing Miles</h3>
+        <button class="btn btn-primary rounded-3 px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalAjukanKlaim" style="font-size: 0.9rem;">
+            <i class="bi bi-plus"></i> Ajukan Klaim
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-borderless align-middle mb-0">
+            <thead class="border-bottom" style="color: #6c757d; font-size: 0.85rem;">
+                <tr>
+                    <th class="fw-normal pb-3 ps-3">No. Klaim</th>
+                    <th class="fw-normal pb-3">Maskapai</th>
+                    <th class="fw-normal pb-3">Rute</th>
+                    <th class="fw-normal pb-3">Tanggal</th>
+                    <th class="fw-normal pb-3">Flight</th>
+                    <th class="fw-normal pb-3">Kelas</th>
+                    <th class="fw-normal pb-3">Status</th>
+                    <th class="fw-normal pb-3">Tanggal Pengajuan</th>
+                    <th class="fw-normal pb-3" style="width: 100px;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for claim in claims %}
+                <tr class="border-bottom">
+                    <td class="py-3 ps-3" style="font-size: 0.9rem; color: #000;">CLM-{{ claim.id }}</td>
+                    <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ claim.maskapai }}</td>
+                    <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ claim.bandara_asal }} - {{ claim.bandara_tujuan }}</td>
+                    <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ claim.tanggal_penerbangan }}</td>
+                    <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ claim.flight_number }}</td>
+                    <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ claim.kelas_kabin }}</td>
+                    <td class="py-3" style="font-size: 0.9rem; color: #000;">
+                        {% if claim.status_penerimaan == 'Menunggu' %}
+                            <span class="badge bg-warning text-dark">Menunggu</span>
+                        {% elif claim.status_validasi == 'Disetujui' %}
+                            <span class="badge bg-success">Disetujui</span>
+                        {% else %}
+                            <span class="badge bg-danger">Ditolak</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ claim.timestamp }}</td>
+                    <td class="py-3" style="font-size: 0.9rem; color: #000;">
+                        {% if claim.status_penerimaan == 'Menunggu' %}
+                            <a href="#" class="text-decoration-none text-secondary me-3" data-bs-toggle="modal" data-bs-target="#modalEdit{{ forloop.counter }}" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="#" class="text-decoration-none text-danger" data-bs-toggle="modal" data-bs-target="#modalHapus{{ forloop.counter }}" title="Hapus">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr> 
+
+                <div class="modal fade" id="modalEdit{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-4 border-0">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update">
+                                <input type="hidden" name="kode_hadiah" value="{{ h.kode_hadiah }}">
+                                
+                                <div class="modal-header border-0 pb-0 mt-2 px-4">
+                                    <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Edit Hadiah</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body px-4 pt-3 pb-2">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Kode Hadiah</label>
+                                            <input type="text" class="form-control py-2" value="{{ h.kode_hadiah }}" disabled>
+                                        </div>
+                                        <div class="col-md-6 mt-3 mt-md-0">
+                                            <label class="form-label">Nama Hadiah</label>
+                                            <input type="text" name="nama" class="form-control py-2" value="{{ h.nama }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Penyedia</label>
+                                            <select name="id_penyedia" class="form-select py-2" disabled>
+                                                <option value="{{ h.id_penyedia }}" selected>ID Penyedia: {{ h.id_penyedia }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mt-3 mt-md-0">
+                                            <label class="form-label">Miles Dibutuhkan</label>
+                                            <input type="number" name="miles" class="form-control py-2" value="{{ h.miles }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Deskripsi</label>
+                                        <textarea name="deskripsi" class="form-control py-2" rows="3">{{ h.deskripsi }}</textarea>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Valid Start</label>
+                                            <input type="date" name="valid_start" class="form-control py-2" value="{{ h.valid_start_date|date:'Y-m-d' }}" required>
+                                        </div>
+                                        <div class="col-md-6 mt-3 mt-md-0">
+                                            <label class="form-label">Program End</label>
+                                            <input type="date" name="program_end" class="form-control py-2" value="{{ h.program_end|date:'Y-m-d' }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                                    <button type="submit" class="btn btn-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Simpan</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="modalHapus{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-4 border-0">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="kode_hadiah" value="{{ h.kode_hadiah }}">
+                                
+                                <div class="modal-header border-0 pb-0 mt-2 px-4">
+                                    <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Hapus Hadiah?</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body px-4 pt-3 pb-2 text-muted" style="font-size: 0.9rem;">
+                                    Jika hadiah sudah pernah di-redeem oleh Member, riwayat redeem akan terpengaruh.
+                                </div>
+                                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                                    <button type="button" class="btn btn-outline-secondary rounded-3 px-4 py-2" data-bs-dismiss="modal" style="font-size: 0.9rem;">Batal</button>
+                                    <button type="submit" class="btn btn-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Hapus</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted" style="font-size: 0.9rem;">Belum ada Klaim Missing Miles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAjukanKlaim" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="modal-header border-0 pb-0 mt-2 px-4">
+                    <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Tambah Hadiah Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pt-3 pb-2">
+                    <div class="mb-3">
+                        <label class="form-label">Nama Hadiah</label>
+                        <input type="text" name="nama" class="form-control py-2" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Penyedia</label>
+                            <select name="id_penyedia" class="form-select py-2" required>
+                                <option value="" disabled selected>Pilih penyedia</option>
+                                {% for p_id in penyedia_list %}
+                                <option value="{{ p_id }}">ID Penyedia: {{ p_id }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <label class="form-label">Miles Dibutuhkan</label>
+                            <input type="number" name="miles" class="form-control py-2" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Deskripsi</label>
+                        <textarea name="deskripsi" class="form-control py-2" rows="3"></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Valid Start</label>
+                            <input type="date" name="valid_start" class="form-control py-2" required>
+                        </div>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <label class="form-label">Program End</label>
+                            <input type="date" name="program_end" class="form-control py-2" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="submit" class="btn btn-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <div class="mb-5">
         <h2 class="fw-bold mb-1" style="color: #000;">Dashboard</h2>
-        <p class="text-muted" style="font-size: 1.1rem;">Selamat datang, Ms. Saikhah Ummu</p>
+        <p class="text-muted" style="font-size: 1.1rem;">Selamat datang, {{ informasi.nama_lengkap }}</p>
     </div>
 
     <div class="mb-4">
@@ -13,25 +13,25 @@
                 <div class="row g-4">
                     <div class="col-md-4">
                         <p class="text-muted mb-0">Nama lengkap:</p>
-                        <p class="fw-bold">Ms. Saikhah Ummu</p>
+                        <p class="fw-bold">{{ informasi.nama_lengkap }}</p>
                     </div>
                     <div class="col-md-4">
                         <p class="text-muted mb-0">Email:</p>
-                        <p class="fw-bold">SaikhahUmmu@gmail.com</p>
+                        <p class="fw-bold">{{ informasi.email }}</p>
                     </div>
                     <div class="col-md-4">
                         <p class="text-muted mb-0">Telepon:</p>
-                        <p class="fw-bold">+62 87889064633</p>
+                        <p class="fw-bold">{{ informasi.telepon }}</p>
                     </div>
                 </div>
                 <div class="row g-4">
                     <div class="col-md-4">
                         <p class="text-muted mb-0">Kewarganegaraan:</p>
-                        <p class="fw-bold">Indonesia</p>
+                        <p class="fw-bold">{{ informasi.kewarganegaraan }}</p>
                     </div>
                     <div class="col-md-4">
                         <p class="text-muted mb-0">Tanggal Lahir</p>
-                        <p class="fw-bold">2005-10-02</p>
+                        <p class="fw-bold">{{ informasi.tanggal_lahir }}</p>
                     </div>
                 </div>
         </div>
@@ -46,7 +46,7 @@
                     </div>
                     <div>
                         <p class="text-muted mb-0" style="font-size: 0.85rem;">Nomor Member</p>
-                        <p class="fw-bold mb-0">50001</p>
+                        <p class="fw-bold mb-0">{{ informasi.nomor_member }}</p>
                     </div>
                 </div>
             </div>
@@ -60,7 +60,16 @@
                     </div>
                     <div>
                         <p class="text-muted mb-0" style="font-size: 0.85rem;">Tier</p>
-                        <span class="badge rounded-pill text-bg-warning px-3 py-2">Gold</span>
+                        <!-- tampilan badge sesuai tier -->
+                        {% if informasi.tier == 'Gold' %}
+                            <span class="badge rounded-pill text-bg-warning px-3 py-2">Gold</span>
+                        {% elif informasi.tier == 'Silver' %}
+                            <span class="badge rounded-pill text-bg-info px-3 py-2">Silver</span>
+                        {% elif informasi.tier == 'Bronze' %}
+                            <span class="badge rounded-pill text-bg-secondary px-3 py-2">Bronze</span>
+                        {% else %}
+                            <span class="badge rounded-pill text-bg-dark px-3 py-2">Platinum</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -74,7 +83,7 @@
                     </div>
                     <div>
                         <p class="text-muted mb-0" style="font-size: 0.85rem;">Total Miles</p>
-                        <p class="fw-bold mb-0">45,000</p>
+                        <p class="fw-bold mb-0">{{ informasi.total_miles }}</p>
                     </div>
                 </div>
             </div>
@@ -88,44 +97,37 @@
                     </div>
                     <div>
                         <p class="text-muted mb-0" style="font-size: 0.85rem;">Award Miles</p>
-                        <p class="fw-bold mb-0">32,000</p>
+                        <p class="fw-bold mb-0">{{ informasi.award_miles }}</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
     <div class="card shadow-sm border-0 rounded-4 p-3">
-        <div class="card-body p-4">
-            <h4 class="fw-bold mb-4">5 Transaksi Terbaru</h4>
+        <h4 class="fw-bold mb-4">5 Transaksi Terbaru</h4>
 
-            <div class="d-flex flex-column gap-3">
-
+        <div class="d-flex flex-column gap-3">
+            {% for transaksi in transaksi %}
             <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background-color: #f8f9fc;">
                 <div class="d-flex align-items-center gap-3">
-                <span class="badge bg-white text-dark border fw-normal px-3 py-2 rounded-pill">Transfer</span>
-                <span class="text-dark" style="font-size: 0.95rem;">2025-01-15 10:30</span>
+                {% if transaksi.jenis_transaksi == 'Kirim Transfer' or transaksi.jenis_transaksi == 'Terima Transfer' %}
+                    <span class="badge bg-white text-dark border fw-bold px-3 py-2 rounded-pill">Transfer</span>
+                {% else %}
+                    <span class="badge bg-white text-dark border fw-bold px-3 py-2 rounded-pill">{{ transaksi.jenis_transaksi }}</span>
+                {% endif %}
+                <span class="text-dark" style="font-size: 0.95rem;">{{ transaksi.timestamp }}</span>
                 </div>
-                <span class="text-danger fw-semibold" style="font-size: 0.95rem;">-5,000 miles</span>
+                {% if transaksi.jenis_transaksi == 'Kirim Transfer' or transaksi.jenis_transaksi == 'Redeem' %}
+                    <span class="text-danger fw-semibold" style="font-size: 0.95rem;">-{{ transaksi.miles }} miles</span>
+                {% else %}
+                    <span class="text-success fw-semibold" style="font-size: 0.95rem;">+{{ transaksi.miles }} miles</span>
+                {% endif %}
             </div>
-
-            <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background-color: #f8f9fc;">
-                <div class="d-flex align-items-center gap-3">
-                <span class="badge bg-white text-dark border fw-normal px-3 py-2 rounded-pill">Redeem</span>
-                <span class="text-dark" style="font-size: 0.95rem;">2025-01-20 16:00</span>
-                </div>
-                <span class="text-danger fw-semibold" style="font-size: 0.95rem;">-3,000 miles</span>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background-color: #f8f9fc;">
-                <div class="d-flex align-items-center gap-3">
-                <span class="badge bg-white text-dark border fw-normal px-3 py-2 rounded-pill">Package</span>
-                <span class="text-dark" style="font-size: 0.95rem;">2025-03-01 08:00</span>
-                </div>
-                <span class="text-success fw-semibold" style="font-size: 0.95rem;">+10,000 miles</span>
-            </div>
-
-            </div>
+            {% empty %}
+            <p class="text-muted">Belum ada transaksi terbaru.</p>
+            {% endfor %}
         </div>
-        </div>
+    </div>
 </div>
 {% endblock %}

@@ -133,33 +133,84 @@ def logout_view(request):
 def dashboard_member(request):
     with connection.cursor() as cursor:
         # Mengambil ringkasan data untuk dashboard
-        cursor.execute("SELECT COUNT(*) FROM MITRA")
-        total_mitra = cursor.fetchone()[0]
-        
-        cursor.execute("SELECT COUNT(*) FROM HADIAH")
-        total_hadiah = cursor.fetchone()[0]
-        
+        cursor.execute("""
+            SELECT CONCAT(p.salutation, ' ', p.first_mid_name, ' ', p.last_name) AS nama_lengkap, p.tanggal_lahir,
+            p.email, CONCAT(p.country_code, ' ', p.mobile_number) AS telepon, p.kewarganegaraan, t.nama AS tier, m.nomor_member, m.total_miles, m.award_miles
+            FROM PENGGUNA p 
+            JOIN MEMBER m ON p.email = m.email
+            JOIN TIER t ON m.id_tier = t.id_tier
+            WHERE p.email = %s
+        """, [request.session.get('email')])
+        informasi = dict(zip([col[0] for col in cursor.description], cursor.fetchone()))
+
+        params = [request.session.get('email')] * 4
+        cursor.execute("""
+            (SELECT 'Terima Transfer' AS jenis_transaksi, t.timestamp, t.jumlah AS miles
+            FROM TRANSFER t
+            WHERE t.email_member_2 = %s)
+            UNION ALL
+            (SELECT 'Kirim Transfer' AS jenis_transaksi, t.timestamp, t.jumlah AS miles
+            FROM TRANSFER t
+            WHERE t.email_member_1 = %s)
+            UNION ALL
+            (SELECT 'Redeem' AS jenis_transaksi, c.timestamp, h.miles AS miles
+            FROM REDEEM c
+            JOIN HADIAH h ON c.kode_hadiah = h.kode_hadiah
+            WHERE c.email_member = %s)
+            UNION ALL
+            (SELECT 'Package' AS jenis_transaksi, cm.timestamp, ap.jumlah_award_miles AS miles
+            FROM MEMBER_AWARD_MILES_PACKAGE cm
+            JOIN AWARD_MILES_PACKAGE ap ON cm.id_award_miles_package = ap.id
+            WHERE cm.email_member = %s)
+            ORDER BY timestamp DESC
+            LIMIT 5;
+        """, params)
+        transaksi = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
     context = {
-        'total_mitra': total_mitra,
-        'total_hadiah': total_hadiah,
-        # Tambahkan data staf spesifik jika diperlukan
+        'informasi': informasi,
+        'transaksi': transaksi
     }
     return render(request, 'member/dashboard.html', context)
 
 @role_required('staf')
 def dashboard_staf(request):
     with connection.cursor() as cursor:
-        # Mengambil ringkasan data untuk dashboard
-        cursor.execute("SELECT COUNT(*) FROM MITRA")
-        total_mitra = cursor.fetchone()[0]
-        
-        cursor.execute("SELECT COUNT(*) FROM HADIAH")
-        total_hadiah = cursor.fetchone()[0]
-        
+        cursor.execute("""
+            SELECT CONCAT(p.salutation, ' ', p.first_mid_name, ' ', p.last_name) AS nama_lengkap, p.tanggal_lahir,
+            p.email, CONCAT(p.country_code, ' ', p.mobile_number) AS telepon, p.kewarganegaraan, s.id_staf, m.nama_maskapai
+            FROM PENGGUNA p 
+            JOIN STAF s ON p.email = s.email
+            JOIN MASKAPAI m ON s.kode_maskapai = m.kode_maskapai
+            WHERE p.email = %s
+        """, [request.session.get('email')])
+        informasi = dict(zip([col[0] for col in cursor.description], cursor.fetchone()))
+
+        klaim = {}
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM CLAIM_MISSING_MILES cm
+            WHERE cm.email_staf = %s AND cm.status_penerimaan = 'Menunggu'
+        """, [request.session.get('email')])
+        klaim['menunggu'] = cursor.fetchone()[0]
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM CLAIM_MISSING_MILES cm
+            WHERE cm.email_staf = %s AND cm.status_penerimaan = 'Disetujui'
+        """, [request.session.get('email')])
+        klaim['disetujui'] = cursor.fetchone()[0]
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM CLAIM_MISSING_MILES cm
+            WHERE cm.email_staf = %s AND cm.status_penerimaan = 'Ditolak'
+        """, [request.session.get('email')])
+        klaim['ditolak'] = cursor.fetchone()[0]
+
     context = {
-        'total_mitra': total_mitra,
-        'total_hadiah': total_hadiah,
-        # Tambahkan data staf spesifik jika diperlukan
+        'informasi': informasi,
+        'klaim': klaim
     }
     return render(request, 'staf/dashboard.html', context)
 
@@ -250,7 +301,11 @@ def kelola_hadiah(request):
             return redirect('kelola_hadiah')
 
         # READ (GET)
-        cursor.execute("SELECT kode_hadiah, nama, miles, deskripsi, valid_start_date, program_end, id_penyedia FROM HADIAH")
+        cursor.execute("""
+            SELECT kode_hadiah, nama, miles, deskripsi, valid_start_date, program_end, id_penyedia 
+            FROM HADIAH
+            ORDER BY kode_hadiah
+        """)
         columns = [col[0] for col in cursor.description]
         hadiah_list = [dict(zip(columns, row)) for row in cursor.fetchall()]
         
@@ -259,7 +314,7 @@ def kelola_hadiah(request):
         penyedia_list = [row[0] for row in cursor.fetchall()]
         
     return render(request, 'staf/manajemen_hadiah.html', {
-        'hadiah_list': hadiah_list, 
+        'hadiah_list': hadiah_list,
         'penyedia_list': penyedia_list
     })
 
@@ -279,4 +334,3 @@ def daftar_claim_member(request):
         claims = [dict(zip(columns, row)) for row in cursor.fetchall()]
         
     return render(request, 'member/daftar_claim.html', {'claims': claims})
-

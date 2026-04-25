@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <div class="mb-5">
         <h2 class="fw-bold mb-1" style="color: #000;">Dashboard</h2>
-        <p class="text-muted" style="font-size: 1.1rem;">Selamat datang, Ms. Saikhah Ummu</p>
+        <p class="text-muted" style="font-size: 1.1rem;">Selamat datang, {{ informasi.nama_lengkap }}</p>
     </div>
 
     <div class="mb-4">
@@ -13,25 +13,25 @@
                 <div class="row g-4">
                     <div class="col-md-4">
                         <p class="text-muted mb-0">Nama lengkap:</p>
-                        <p class="fw-bold">Ms. Saikhah Ummu</p>
+                        <p class="fw-bold">{{ informasi.nama_lengkap }}</p>
                     </div>
                     <div class="col-md-4">
                         <p class="text-muted mb-0">Email:</p>
-                        <p class="fw-bold">SaikhahUmmu@gmail.com</p>
+                        <p class="fw-bold">{{ informasi.email }}</p>
                     </div>
                     <div class="col-md-4">
                         <p class="text-muted mb-0">Telepon:</p>
-                        <p class="fw-bold">+62 87889064633</p>
+                        <p class="fw-bold">{{ informasi.telepon }}</p>
                     </div>
                 </div>
                 <div class="row g-4">
                     <div class="col-md-4">
                         <p class="text-muted mb-0">Kewarganegaraan:</p>
-                        <p class="fw-bold">Indonesia</p>
+                        <p class="fw-bold">{{ informasi.kewarganegaraan }}</p>
                     </div>
                     <div class="col-md-4">
                         <p class="text-muted mb-0">Tanggal Lahir</p>
-                        <p class="fw-bold">2005-10-02</p>
+                        <p class="fw-bold">{{ informasi.tanggal_lahir }}</p>
                     </div>
                 </div>
         </div>
@@ -46,7 +46,7 @@
                     </div>
                     <div>
                         <p class="text-muted mb-0" style="font-size: 0.85rem;">ID Staf</p>
-                        <p class="fw-bold mb-0">50001</p>
+                        <p class="fw-bold mb-0">{{ informasi.id_staf }}</p>
                     </div>
                 </div>
             </div>
@@ -60,7 +60,7 @@
                     </div>
                     <div>
                         <p class="text-muted mb-0" style="font-size: 0.85rem;">Maskapai</p>
-                        <p class="fw-bold mb-0">Garuda Indonesia</p>
+                        <p class="fw-bold mb-0">{{ informasi.nama_maskapai }}</p>
                     </div>
                 </div>
             </div>
@@ -74,7 +74,7 @@
                     </div>
                     <div>
                         <p class="text-muted mb-0" style="font-size: 0.85rem;">Klaim Menunggu</p>
-                        <p class="fw-bold mb-0">2</p>
+                        <p class="fw-bold mb-0">{{ klaim.menunggu }}</p>
                     </div>
                 </div>
             </div>
@@ -88,7 +88,7 @@
                     </div>
                     <div>
                         <p class="text-muted mb-0" style="font-size: 0.85rem;">Klaim disetujui</p>
-                        <p class="fw-bold mb-0">1</p>
+                        <p class="fw-bold mb-0">{{ klaim.disetujui }}</p>
                     </div>
                 </div>
             </div>
@@ -103,7 +103,7 @@
                     </div>
                     <div>
                         <p class="text-muted mb-0" style="font-size: 0.85rem;">Klaim Ditolak</p>
-                        <p class="fw-bold mb-0">1</p>
+                        <p class="fw-bold mb-0">{{ klaim.ditolak }}</p>
                     </div>
                 </div>
             </div>

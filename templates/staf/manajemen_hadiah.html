@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
+<div class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold mb-0" style="color: #000;">Kelola Hadiah & Penyedia</h3>
-        <button class="btn btn-primary rounded-3 px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalTambahHadiah" style="font-size: 0.9rem;">
+        <h3 class="fw-bold mb-1" style="color: #000;">Kelola Hadiah & Penyedia</h3>
+        <button class="btn btn-aeromiles-primary rounded-3 px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalTambahHadiah">
             <i class="bi bi-plus"></i> Tambah Hadiah
         </button>
     </div>
@@ -30,8 +30,8 @@
                             <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ h.nama }}</td>
                             <td class="py-3 text-muted text-truncate" style="font-size: 0.9rem; max-width: 180px;" title="{{ h.deskripsi }}">{{ h.deskripsi }}</td>
                             <td class="py-3" style="font-size: 0.9rem; color: #000;">
-                                ID: {{ h.id_penyedia }}
-                                <span class="badge rounded-pill text-bg-light border text-muted ms-1 fw-normal" style="font-size: 0.75rem;">penyedia</span>
+                                {{ h.nama_penyedia }}
+                                <span class="badge rounded-pill text-bg-light border text-muted ms-1 fw-normal" style="font-size: 0.75rem;">{{ h.jenis_penyedia }}</span>
                             </td>
                             <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ h.miles }}</td>
                             <td class="py-3" style="font-size: 0.85rem; color: #000;">{{ h.valid_start_date|date:'Y-m-d' }} &mdash; {{ h.program_end|date:'Y-m-d' }}</td>
@@ -72,7 +72,7 @@
                                                 <div class="col-md-6">
                                                     <label class="form-label">Penyedia</label>
                                                     <select name="id_penyedia" class="form-select py-2" disabled>
-                                                        <option value="{{ h.id_penyedia }}" selected>ID Penyedia: {{ h.id_penyedia }}</option>
+                                                        <option value="{{ h.id_penyedia }}" selected>{{ h.nama_penyedia }} ({{ h.jenis_penyedia }})</option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-6 mt-3 mt-md-0">
@@ -96,7 +96,7 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer border-0 pt-0 px-4 pb-4">
-                                            <button type="submit" class="btn btn-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Simpan</button>
+                                            <button type="submit" class="btn btn-aeromiles-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Simpan</button>
                                         </div>
                                     </form>
                                 </div>
@@ -119,8 +119,8 @@
                                             Jika hadiah sudah pernah di-redeem oleh Member, riwayat redeem akan terpengaruh.
                                         </div>
                                         <div class="modal-footer border-0 pt-0 px-4 pb-4">
-                                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4 py-2" data-bs-dismiss="modal" style="font-size: 0.9rem;">Batal</button>
-                                            <button type="submit" class="btn btn-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Hapus</button>
+                                            <button type="button" class="btn btn-aeromiles-secondary rounded-3 px-4 py-2" data-bs-dismiss="modal" style="font-size: 0.9rem;">Batal</button>
+                                            <button type="submit" class="btn btn-aeromiles-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Hapus</button>
                                         </div>
                                     </form>
                                 </div>
@@ -158,8 +158,8 @@
                             <label class="form-label">Penyedia</label>
                             <select name="id_penyedia" class="form-select py-2" required>
                                 <option value="" disabled selected>Pilih penyedia</option>
-                                {% for p_id in penyedia_list %}
-                                <option value="{{ p_id }}">ID Penyedia: {{ p_id }}</option>
+                                {% for p in penyedia_list %}
+                                <option value="{{ p.id_penyedia }}">{{ p.nama_penyedia }} ({{ p.jenis_penyedia }})</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -184,7 +184,7 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0 px-4 pb-4">
-                    <button type="submit" class="btn btn-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Simpan</button>
+                    <button type="submit" class="btn btn-aeromiles-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Simpan</button>
                 </div>
             </form>
         </div>

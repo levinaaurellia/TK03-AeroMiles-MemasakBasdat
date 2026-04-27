@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
-
 {% block content %}
-<div class="container mt-4">
+<div class="container my-4">
     <div class="mb-5">
         <h2 class="fw-bold mb-1" style="color: #000;">Dashboard</h2>
         <p class="text-muted" style="font-size: 1.1rem;">Selamat datang, {{ informasi.nama_lengkap }}</p>
@@ -31,7 +30,7 @@
                     </div>
                     <div class="col-md-4">
                         <p class="text-muted mb-0">Tanggal Lahir</p>
-                        <p class="fw-bold">{{ informasi.tanggal_lahir }}</p>
+                        <p class="fw-bold">{{ informasi.tanggal_lahir|date:'Y-m-d' }}</p>
                     </div>
                 </div>
         </div>
@@ -62,13 +61,13 @@
                         <p class="text-muted mb-0" style="font-size: 0.85rem;">Tier</p>
                         <!-- tampilan badge sesuai tier -->
                         {% if informasi.tier == 'Gold' %}
-                            <span class="badge rounded-pill text-bg-warning px-3 py-2">Gold</span>
+                            <span class="badge text-bg-warning">Gold</span>
                         {% elif informasi.tier == 'Silver' %}
-                            <span class="badge rounded-pill text-bg-info px-3 py-2">Silver</span>
+                            <span class="badge text-bg-info">Silver</span>
                         {% elif informasi.tier == 'Bronze' %}
-                            <span class="badge rounded-pill text-bg-secondary px-3 py-2">Bronze</span>
+                            <span class="badge text-bg-secondary">Bronze</span>
                         {% else %}
-                            <span class="badge rounded-pill text-bg-dark px-3 py-2">Platinum</span>
+                            <span class="badge text-bg-dark">Platinum</span>
                         {% endif %}
                     </div>
                 </div>
@@ -116,7 +115,7 @@
                 {% else %}
                     <span class="badge bg-white text-dark border fw-bold px-3 py-2 rounded-pill">{{ transaksi.jenis_transaksi }}</span>
                 {% endif %}
-                <span class="text-dark" style="font-size: 0.95rem;">{{ transaksi.timestamp }}</span>
+                <span class="text-dark" style="font-size: 0.95rem;">{{ transaksi.timestamp|date:"Y-m-d H:i" }}</span>
                 </div>
                 {% if transaksi.jenis_transaksi == 'Kirim Transfer' or transaksi.jenis_transaksi == 'Redeem' %}
                     <span class="text-danger fw-semibold" style="font-size: 0.95rem;">-{{ transaksi.miles }} miles</span>

@@ -1,31 +1,61 @@
-body {
-    background-color: #f8f9fa; 
+body { 
+    background-color: #f8f9fa;
+    min-height: 100dvh;
+    margin: 0;
+}
+
+.navbar { 
+    background-color: #003366; 
+}
+
+.navbar-brand, .nav-link { 
+    color: white; 
+}
+
+.dropdown-menu .dropdown-item {
+    font-size: 0.8rem;
+}
+
+.card { 
+    border: none; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
 }
 
 .text-aeromiles {
-    color: #002b5e;
+    color: #002b5e !important;
+}
+
+.border-aeromiles {
+    border: 1px solid #001a38;
 }
 
 .bg-aeromiles {
     background-color: #002b5e;
 }
 
-.btn-aeromiles {
-    background-color: #002b5e;
-    color: white;
+.btn-aeromiles-primary {
+    background-color: #002b5e !important;
+    color: white !important;
+    font-size: 0.9rem;
 }
 
-.btn-aeromiles:hover {
-    background-color: #001a38;
-    color: white;
+.btn-aeromiles-primary:hover {
+    background-color: #001a38 !important;
+}
+
+.btn-aeromiles-secondary {
+    background-color: white !important;
+    color: #001a38 !important;
+    border: 1px solid #001a38;
+    font-size: 0.9rem;
+}
+
+.btn-aeromiles-secondary:hover {
+    background-color: #6c757d !important;
 }
 
 .form-label { 
     font-size: 0.85rem; 
     font-weight: 600; 
-}
-
-.card { 
-    max-width: 700px; 
-    margin: 0 auto; 
 }

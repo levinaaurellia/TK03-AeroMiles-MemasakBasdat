@@ -55,7 +55,7 @@
                     <tbody>
                         {% for c in claim_list %}
                         <tr class="border-bottom">
-                            <td class="py-3 ps-3" style="font-size: 0.9rem; color: #000;">CLM-{{ c.id }}</td>
+                            <td class="py-3 ps-3" style="font-size: 0.9rem; color: #000;">CLM-{{ c.id|stringformat:"03d" }}</td>
                             <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ c.kode_maskapai }}</td>
                             <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ c.bandara_asal }} &rarr; {{ c.bandara_tujuan }}</td>
                             <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ c.tanggal_penerbangan|date:'Y-m-d' }}</td>

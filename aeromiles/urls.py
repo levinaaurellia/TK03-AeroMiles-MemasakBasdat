@@ -31,4 +31,10 @@ urlpatterns = [
     path('member/claim-missing-miles/', views.claim_missing_miles_member, name='claim_missing_miles_member'),
 
     path('', RedirectView.as_view(url='/login/', permanent=False)),
+    path('member/redeem/', views.redeem_view, name='redeem'),
+    path('member/package/', views.package_view, name='package'),
+    path('member/tier/', views.tier_view, name='tier'),
+    path('member/redeem/proses/', views.proses_redeem, name='proses_redeem'),
+    path('member/package/beli/', views.beli_package, name='beli_package'),
+    path('staf/laporan/', views.laporan_transaksi_view, name='laporan'),
 ]

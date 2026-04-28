@@ -3,6 +3,7 @@ from django.db import connection
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from datetime import date
+from datetime import datetime
 from .decorators import role_required
 
 def login_view(request):
@@ -342,3 +343,339 @@ def claim_missing_miles_member(request):
         claims = [dict(zip(columns, row)) for row in cursor.fetchall()]
         
     return render(request, 'member/daftar_claim.html', {'claims': claims})
+
+def redeem_view(request):
+    email = request.session.get('email')
+
+    with connection.cursor() as cursor:
+
+        # ✅ ambil award miles user
+        cursor.execute("""
+            SELECT award_miles 
+            FROM MEMBER 
+            WHERE email = %s
+        """, [email])
+        award_miles = cursor.fetchone()[0]
+
+        # ✅ katalog hadiah (FIX JOIN SESUAI ERD)
+        cursor.execute("""
+            SELECT h.kode_hadiah, h.nama, h.miles, h.deskripsi,
+                   h.valid_start_date, h.program_end,
+                   m.nama_maskapai
+            FROM HADIAH h
+            JOIN PENYEDIA p ON h.id_penyedia = p.id
+            LEFT JOIN MASKAPAI m ON m.id_penyedia = p.id
+            WHERE h.program_end >= CURRENT_DATE
+            ORDER BY h.kode_hadiah
+        """)
+        katalog = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+        # ✅ riwayat redeem
+        cursor.execute("""
+            SELECT h.nama, r.timestamp, h.miles
+            FROM REDEEM r
+            JOIN HADIAH h ON r.kode_hadiah = h.kode_hadiah
+            WHERE r.email_member = %s
+            ORDER BY r.timestamp DESC
+        """, [email])
+        riwayat = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+    return render(request, 'member/redeem.html', {
+        'award_miles': award_miles,
+        'katalog': katalog,
+        'riwayat': riwayat
+    })
+
+def proses_redeem(request):
+    if request.method == 'POST':
+        email = request.session.get('email')
+        kode_hadiah = request.POST.get('kode_hadiah')
+
+        with connection.cursor() as cursor:
+
+            # ambil miles hadiah
+            cursor.execute("""
+                SELECT miles FROM HADIAH WHERE kode_hadiah = %s
+            """, [kode_hadiah])
+            miles = cursor.fetchone()[0]
+
+            # ambil miles user
+            cursor.execute("""
+                SELECT award_miles FROM MEMBER WHERE email = %s
+            """, [email])
+            user_miles = cursor.fetchone()[0]
+
+            if user_miles >= miles:
+
+                # insert redeem
+                cursor.execute("""
+                    INSERT INTO REDEEM (email_member, kode_hadiah, timestamp)
+                    VALUES (%s, %s, NOW())
+                """, [email, kode_hadiah])
+
+                # update miles
+                cursor.execute("""
+                    UPDATE MEMBER
+                    SET award_miles = award_miles - %s
+                    WHERE email = %s
+                """, [miles, email])
+
+        return redirect('redeem')
+    
+def package_view(request):
+    email = request.session.get('email')
+
+    with connection.cursor() as cursor:
+
+        cursor.execute("""
+            SELECT award_miles FROM MEMBER WHERE email = %s
+        """, [email])
+        award_miles = cursor.fetchone()[0]
+
+        # ✅ FIX NAMA KOLOM
+        cursor.execute("""
+            SELECT id, jumlah_award_miles, harga_paket
+            FROM AWARD_MILES_PACKAGE
+            ORDER BY jumlah_award_miles
+        """)
+        packages = [
+            dict(zip([col[0] for col in cursor.description], row))
+            for row in cursor.fetchall()
+        ]
+
+    return render(request, 'member/package.html', {
+        'award_miles': award_miles,
+        'packages': packages
+    })
+    
+def beli_package(request):
+    if request.method == 'POST':
+        email = request.session.get('email')
+        id_package = request.POST.get('id_package')
+
+        with connection.cursor() as cursor:
+
+            cursor.execute("""
+                SELECT jumlah_award_miles, harga_paket 
+                FROM AWARD_MILES_PACKAGE 
+                WHERE id = %s
+            """, [id_package])
+            miles, harga = cursor.fetchone()
+
+            cursor.execute("""
+                INSERT INTO MEMBER_AWARD_MILES_PACKAGE 
+                (email_member, id_package, timestamp)
+                VALUES (%s, %s, NOW())
+            """, [email, id_package])
+
+            cursor.execute("""
+                UPDATE MEMBER
+                SET award_miles = award_miles + %s
+                WHERE email = %s
+            """, [miles, email])
+
+        return redirect('package')
+
+def tier_view(request):
+    email = request.session.get('email')
+
+    with connection.cursor() as cursor:
+
+        # ambil data member (FIX: pakai id_tier)
+        cursor.execute("""
+            SELECT award_miles, id_tier
+            FROM MEMBER
+            WHERE email = %s
+        """, [email])
+        award_miles, current_tier = cursor.fetchone()
+
+        # ambil semua tier
+        cursor.execute("""
+            SELECT id_tier, nama, minimal_frekuensi_terbang, minimal_tier_miles
+            FROM TIER
+            ORDER BY minimal_tier_miles
+        """)
+        tiers = [
+            dict(zip([col[0] for col in cursor.description], row))
+            for row in cursor.fetchall()
+        ]
+
+    # ================= BENEFITS =================
+    for t in tiers:
+        if t['nama'].lower() == 'bronze':
+            t['benefits'] = [
+                'Akumulasi miles dasar',
+                'Akses penawaran member'
+            ]
+        elif t['nama'].lower() == 'silver':
+            t['benefits'] = [
+                'Bonus miles 25%',
+                'Priority check-in',
+                'Akses lounge partner'
+            ]
+        elif t['nama'].lower() == 'gold':
+            t['benefits'] = [
+                'Bonus miles 50%',
+                'Priority boarding',
+                'Akses lounge premium',
+                'Extra bagasi 10kg'
+            ]
+        elif t['nama'].lower() == 'platinum':
+            t['benefits'] = [
+                'Bonus miles 100%',
+                'Upgrade gratis (jika tersedia)',
+                'Akses lounge first class',
+                'Extra bagasi 20kg',
+                'Dedicated hotline'
+            ]
+
+    next_tier = None
+    for t in tiers:
+        if award_miles < t['minimal_tier_miles']:
+            next_tier = t
+            break
+
+    progress = 0
+    if next_tier:
+        progress = int((award_miles / next_tier['minimal_tier_miles']) * 100)
+
+    return render(request, 'member/tier.html', {
+        'tiers': tiers,
+        'current_tier': current_tier,
+        'award_miles': award_miles,
+        'next_tier': next_tier,
+        'progress': progress
+    })
+
+from django.shortcuts import render
+from django.db import connection
+
+
+def laporan_transaksi_view(request):
+    tipe = request.GET.get('tipe', '').lower()
+    tab = request.GET.get('tab', 'riwayat')
+
+    with connection.cursor() as cursor:
+
+        # =========================
+        # RIWAYAT TRANSAKSI
+        # =========================
+        query = """
+        SELECT * FROM (
+
+            SELECT 
+                'Transfer' AS tipe,
+                email_member_1 AS email,
+                jumlah AS miles,
+                timestamp
+            FROM TRANSFER
+
+            UNION ALL
+
+            SELECT 
+                'Redeem' AS tipe,
+                email_member AS email,
+                0 AS miles,
+                timestamp
+            FROM REDEEM
+
+            UNION ALL
+
+            SELECT 
+                'Claim' AS tipe,
+                email_member AS email,
+                0 AS miles,
+                timestamp
+            FROM CLAIM_MISSING_MILES
+            WHERE status_penerimaan = 'Disetujui'
+
+            UNION ALL
+
+            SELECT 
+                'Package' AS tipe,
+                email_member AS email,
+                0 AS miles,
+                timestamp
+            FROM MEMBER_AWARD_MILES_PACKAGE
+
+        ) AS transaksi
+        """
+
+        if tipe and tipe != 'semua':
+            query += " WHERE LOWER(tipe) = %s"
+            cursor.execute(query, [tipe])
+        else:
+            cursor.execute(query)
+
+        rows = cursor.fetchall()
+
+    transaksi = [
+        {
+            'tipe': r[0],
+            'email': r[1],
+            'miles': r[2],
+            'waktu': r[3],
+        }
+        for r in rows
+    ]
+
+    # =========================
+    # SUMMARY
+    # =========================
+    with connection.cursor() as cursor:
+
+        cursor.execute("""
+            SELECT COALESCE(SUM(total_miles), 0)
+            FROM MEMBER
+        """)
+        total_miles = cursor.fetchone()[0]
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM REDEEM
+            WHERE EXTRACT(MONTH FROM timestamp) = EXTRACT(MONTH FROM CURRENT_DATE)
+        """)
+        total_redeem = cursor.fetchone()[0]
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM CLAIM_MISSING_MILES
+            WHERE status_penerimaan = 'Disetujui'
+        """)
+        total_klaim = cursor.fetchone()[0]
+
+    # =========================
+    # TOP MEMBER (AKTIVITAS)
+    # =========================
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT email, COUNT(*) AS total_transaksi
+            FROM (
+                SELECT email_member_1 AS email FROM TRANSFER
+                UNION ALL
+                SELECT email_member FROM REDEEM
+            ) t
+            GROUP BY email
+            ORDER BY total_transaksi DESC
+            LIMIT 10
+        """)
+        top_rows = cursor.fetchall()
+
+    top_member = [
+        {
+            'rank': i + 1,
+            'email': r[0],
+            'total_transaksi': r[1],
+        }
+        for i, r in enumerate(top_rows)
+    ]
+
+    return render(request, 'staf/laporan.html', {
+        'transaksi': transaksi,
+        'top_member': top_member,
+        'total_miles': total_miles,
+        'total_redeem': total_redeem,
+        'total_klaim': total_klaim,
+        'selected_tipe': tipe,
+        'tab': tab,
+    })

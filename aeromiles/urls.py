@@ -20,21 +20,31 @@ from django.views.generic import RedirectView
 from main import views
 
 urlpatterns = [
+    # admin
     path('admin/', admin.site.urls),
+
+    # guest
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
-    path('logout/', views.logout_view, name='logout'),
-    path('member/dashboard/', views.dashboard_member, name='dashboard_member'),
-    path('staf/dashboard/', views.dashboard_staf, name='dashboard_staf'),
-    path('kelola-hadiah/', views.kelola_hadiah, name='kelola_hadiah'),
-    path('kelola-mitra/', views.kelola_mitra, name='kelola_mitra'),
-    path('member/claim-missing-miles/', views.claim_missing_miles_member, name='claim_missing_miles_member'),
 
-    path('', RedirectView.as_view(url='/login/', permanent=False)),
+    # member
+    path('member/dashboard/', views.dashboard_member, name='dashboard_member'),
+    path('member/klaim-miles/', views.klaim_miles, name='klaim_miles'),
+    path('member/transfer-miles/', views.transfer_miles, name='transfer_miles'),
     path('member/redeem/', views.redeem_view, name='redeem'),
     path('member/package/', views.package_view, name='package'),
     path('member/tier/', views.tier_view, name='tier'),
     path('member/redeem/proses/', views.proses_redeem, name='proses_redeem'),
     path('member/package/beli/', views.beli_package, name='beli_package'),
+
+    # staf
+    path('staf/dashboard/', views.dashboard_staf, name='dashboard_staf'),
+    path('staf/kelola-hadiah/', views.kelola_hadiah, name='kelola_hadiah'),
+    path('staf/kelola-mitra/', views.kelola_mitra, name='kelola_mitra'),
+    path('staf/kelola-klaim/', views.kelola_klaim, name='kelola_klaim'),
     path('staf/laporan/', views.laporan_transaksi_view, name='laporan'),
+    
+    
+    path('logout/', views.logout_view, name='logout'), 
+    path('', RedirectView.as_view(url='/login/', permanent=False)),
 ]

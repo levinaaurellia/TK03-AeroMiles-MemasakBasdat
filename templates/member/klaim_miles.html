@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-1" style="color: #000;">Klaim Missing Miles</h3>
+        <button class="btn btn-aeromiles-primary rounded-3 px-3 py-2" data-bs-toggle="modal" data-bs-target="#modalAjukanKlaim">
+            <i class="bi bi-plus"></i> Ajukan Klaim
+        </button>
+    </div>
+
+    <ul class="nav nav-pills mb-4 gap-2">
+        <li class="nav-item">
+            <a class="nav-link rounded-3 {% if current_status == 'semua' %}active btn-aeromiles-primary border-0{% else %}btn-aeromiles-secondary{% endif %}" style="font-size: 0.8rem;" 
+            href="{{ request.path }}">
+            Semua
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-3 {% if current_status == 'menunggu' %}active btn-aeromiles-primary border-0{% else %}btn-aeromiles-secondary{% endif %}" style="font-size: 0.8rem;"
+            href="?status=menunggu">
+            Menunggu
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-3 {% if current_status == 'disetujui' %}active btn-aeromiles-primary border-0{% else %}btn-aeromiles-secondary{% endif %}" style="font-size: 0.8rem;"
+            href="?status=disetujui">
+            Disetujui
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-3 {% if current_status == 'ditolak' %}active btn-aeromiles-primary border-0{% else %}btn-aeromiles-secondary{% endif %}" style="font-size: 0.8rem;"
+            href="?status=ditolak">
+            Ditolak
+            </a>
+        </li>
+    </ul>
+
+    <div class="card shadow-sm border-0 rounded-4" style="max-width: 100%;">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead class="border-bottom" style="color: #6c757d; font-size: 0.85rem;">
+                        <tr>
+                            <th class="fw-normal pb-3 ps-3">No. Klaim</th>
+                            <th class="fw-normal pb-3">Maskapai</th>
+                            <th class="fw-normal pb-3">Rute</th>
+                            <th class="fw-normal pb-3">Tanggal</th>
+                            <th class="fw-normal pb-3">Flight</th>
+                            <th class="fw-normal pb-3">Kelas</th>
+                            <th class="fw-normal pb-3">Status</th>
+                            <th class="fw-normal pb-3">Tanggal Pengajuan</th>
+                            <th class="fw-normal pb-3 text-center" style="width: 100px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in claim_list %}
+                        <tr class="border-bottom">
+                            <td class="py-3 ps-3" style="font-size: 0.9rem; color: #000;">CLM-{{ c.id }}</td>
+                            <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ c.kode_maskapai }}</td>
+                            <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ c.bandara_asal }} &rarr; {{ c.bandara_tujuan }}</td>
+                            <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ c.tanggal_penerbangan|date:'Y-m-d' }}</td>
+                            <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ c.flight_number }}</td>
+                            <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ c.kelas_kabin }}</td>
+                            <td class="py-3" style="font-size: 0.9rem; color: #000;">
+                                {% if c.status_penerimaan == 'Menunggu' %}
+                                    <span class="badge bg-warning text-dark">Menunggu</span>
+                                {% elif c.status_penerimaan == 'Disetujui' %}
+                                    <span class="badge bg-success">Disetujui</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Ditolak</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ c.tanggal_pengajuan|date:'Y-m-d H:i:s' }}</td>
+                            <td class="py-3 text-center" style="font-size: 0.9rem; color: #000;">
+                                {% if c.status_penerimaan == 'Menunggu' %}
+                                    <a href="#" class="text-decoration-none text-secondary me-3" data-bs-toggle="modal" data-bs-target="#modalEdit{{ forloop.counter }}" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="#" class="text-decoration-none text-danger" data-bs-toggle="modal" data-bs-target="#modalHapus{{ forloop.counter }}" title="Hapus">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr> 
+
+                        <div class="modal fade" id="modalEdit{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content rounded-4 border-0">
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="update">
+                                        <input type="hidden" name="id_klaim" value="{{ c.id }}">
+                                        
+                                        <div class="modal-header border-0 pb-0 mt-2 px-4">
+                                            <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Edit Klaim</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body px-4 pt-3 pb-2">
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Maskapai</label>
+                                                    <select name="kode_maskapai" class="form-select py-2" required>
+                                                        {% for m in maskapai_list %}
+                                                        <option value="{{ m.kode_maskapai }}" {% if c.kode_maskapai == m.kode_maskapai %}selected{% endif %}>{{ m.kode_maskapai }} - {{ m.nama_maskapai }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6 mt-3 mt-md-0">
+                                                    <label class="form-label">Kelas Kabin</label>
+                                                    <select name="kelas_kabin" class="form-select py-2" required>
+                                                        <option value="Economy" {% if c.kelas_kabin == 'Economy' %}selected{% endif %}>Economy</option>
+                                                        <option value="Business" {% if c.kelas_kabin == 'Business' %}selected{% endif %}>Business</option>
+                                                        <option value="First" {% if c.kelas_kabin == 'First' %}selected{% endif %}>First</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Bandara Asal</label>
+                                                    <select name="bandara_asal" class="form-select py-2" required>
+                                                        {% for b in bandara_list %}
+                                                        <option value="{{ b.iata_code }}" {% if c.iata_code_asal == b.iata_code %}selected{% endif %}>{{ b.iata_code }} - {{ b.nama }}, {{ b.kota }}, {{ b.negara }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Bandara Tujuan</label>
+                                                    <select name="bandara_tujuan" class="form-select py-2" required>
+                                                        {% for b in bandara_list %}
+                                                        <option value="{{ b.iata_code }}" {% if c.iata_code_tujuan == b.iata_code %}selected{% endif %}>{{ b.iata_code }} - {{ b.nama }}, {{ b.kota }}, {{ b.negara }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Tanggal Penerbangan</label>
+                                                    <input type="date" name="tanggal_penerbangan" class="form-control py-2" value="{{ c.tanggal_penerbangan|date:'Y-m-d' }}" required>
+                                                </div>
+                                                <div class="col-md-6 mt-3 mt-md-0">
+                                                    <label class="form-label">Flight Number</label>
+                                                    <input type="text" name="flight_number" class="form-control py-2" value="{{ c.flight_number }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Nomor Tiket</label>
+                                                    <input type="text" name="nomor_tiket" class="form-control py-2" value="{{ c.nomor_tiket }}" required>
+                                                </div>
+                                                <div class="col-md-6 mt-3 mt-md-0">
+                                                    <label class="form-label">PNR</label>
+                                                    <input type="text" name="pnr" class="form-control py-2" value="{{ c.pnr }}" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                                            <button type="submit" class="btn btn-aeromiles-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Simpan</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="modalHapus{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content rounded-4 border-0">
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="id_klaim" value="{{ c.id }}">
+                                        
+                                        <div class="modal-header border-0 pb-0 mt-2 px-4">
+                                            <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Batalkan Klaim?</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body px-4 pt-3 pb-2 text-muted" style="font-size: 0.9rem;">
+                                            Klaim akan dihapus secara permanen.
+                                        </div>
+                                        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                                            <button type="button" class="btn btn-aeromiles-secondary rounded-3 px-4 py-2" data-bs-dismiss="modal" style="font-size: 0.9rem;">Batal</button>
+                                            <button type="submit" class="btn btn-aeromiles-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Hapus</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted" style="font-size: 0.9rem;">Belum ada Klaim Missing Miles.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAjukanKlaim" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="modal-header border-0 pb-0 mt-2 px-4">
+                    <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Ajukan Klaim Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pt-3 pb-2">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Maskapai</label>
+                            <select name="kode_maskapai" class="form-select py-2" required>
+                                <option value="" disabled selected>Pilih maskapai</option>
+                                {% for m in maskapai_list %}
+                                <option value="{{ m.kode_maskapai }}">{{ m.kode_maskapai }} - {{ m.nama_maskapai }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <label class="form-label">Kelas Kabin</label>
+                            <select name="kelas_kabin" class="form-select py-2" required>
+                                <option value="" disabled selected>Pilih kelas kabin</option>
+                                <option value="Economy">Economy</option>
+                                <option value="Business">Business</option>
+                                <option value="First">First</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Bandara Asal</label>
+                            <select name="bandara_asal" class="form-select py-2" required>
+                                <option value="" disabled selected>Pilih bandara asal</option>
+                                {% for b in bandara_list %}
+                                <option value="{{ m.iata_code }}">{{ b.iata_code }} - {{ b.nama }}, {{ b.kota }}, {{ b.negara }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Bandara Tujuan</label>
+                            <select name="bandara_tujuan" class="form-select py-2" required>
+                                <option value="" disabled selected>Pilih bandara tujuan</option>
+                                {% for b in bandara_list %}
+                                <option value="{{ m.iata_code }}">{{ b.iata_code }} - {{ b.nama }}, {{ b.kota }}, {{ b.negara }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tanggal Penerbangan</label>
+                            <input type="date" name="tanggal_penerbangan" class="form-control py-2" required>
+                        </div>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <label class="form-label">Flight Number</label>
+                            <input type="text" name="flight_number" class="form-control py-2" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nomor Tiket</label>
+                            <input type="text" name="nomor_tiket" class="form-control py-2" required>
+                        </div>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <label class="form-label">PNR</label>
+                            <input type="text" name="pnr" class="form-control py-2" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="submit" class="btn btn-aeromiles-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

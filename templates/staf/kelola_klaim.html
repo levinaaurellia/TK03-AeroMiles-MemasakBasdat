@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-1" style="color: #000;">Kelola Klaim Missing Miles</h3>
+    </div>
+
+    <form method="GET" class="row g-2 mb-4 align-items-center">
+        <div class="col-12 col-md-auto">
+            <select name="status" class="form-select rounded-3 text-aeromiles border-aeromiles w-100" style="font-size: 0.9rem;" onchange="this.form.submit()">
+                <option value="semua" {% if current_status == 'semua' %}selected{% endif %}>Semua Status</option>
+                <option value="menunggu" {% if current_status == 'menunggu' %}selected{% endif %}>Menunggu</option>
+                <option value="disetujui" {% if current_status == 'disetujui' %}selected{% endif %}>Disetujui</option>
+                <option value="ditolak" {% if current_status == 'ditolak' %}selected{% endif %}>Ditolak</option>
+            </select>
+        </div>
+
+        <div class="col-12 col-md-auto">
+            <select name="maskapai" class="form-select rounded-3 text-aeromiles border-aeromiles w-100" style="font-size: 0.9rem;" onchange="this.form.submit()">
+                <option value="semua" {% if current_maskapai == 'semua' %}selected{% endif %}>Semua Maskapai</option>
+                {% for m in maskapai_list %}
+                <option value="{{ m.kode_maskapai }}" {% if current_maskapai == m.kode_maskapai %}selected{% endif %}>{{ m.kode_maskapai }} - {{ m.nama_maskapai }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-12 col-md-auto">
+            <select name="tanggal" class="form-select rounded-3 text-aeromiles border-aeromiles w-100" style="font-size: 0.9rem;" onchange="this.form.submit()">
+                <option value="terbaru" {% if current_tanggal == 'terbaru' %}selected{% endif %}>Tanggal Pengajuan (Terbaru)</option>
+                <option value="terlama" {% if current_tanggal == 'terlama' %}selected{% endif %}>Tanggal Pengajuan (Terlama)</option>
+            </select>
+        </div>
+    </form>
+
+    <div class="card shadow-sm border-0 rounded-4" style="max-width: 100%;">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead class="border-bottom" style="color: #6c757d; font-size: 0.85rem;">
+                        <tr>
+                            <th class="fw-normal pb-3 ps-3">No. Klaim</th>
+                            <th class="fw-normal pb-3">Member</th>
+                            <th class="fw-normal pb-3">Maskapai</th>
+                            <th class="fw-normal pb-3">Rute</th>
+                            <th class="fw-normal pb-3">Tanggal</th>
+                            <th class="fw-normal pb-3">Flight</th>
+                            <th class="fw-normal pb-3">Kelas</th>
+                            <th class="fw-normal pb-3">Tanggal Pengajuan</th>
+                            <th class="fw-normal pb-3">Status</th>
+                            <th class="fw-normal pb-3 text-center" style="width: 100px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in claim_list %}
+                        <tr class="border-bottom">
+                            <td class="align-middle py-3 ps-3" style="font-size: 0.9rem; color: #000;">CLM-{{ c.id }}</td>
+                            <td class="align-middle py-3" style="font-size: 0.9rem; color: #000;">
+                                <p class="mb-0 fw-bold" style="color: #000; font-size: 0.95rem;">{{ c.nama_member }}</p>
+                                <p class="mb-0 text-muted" style="font-size: 0.85rem;">{{ c.email_member }}</p>
+                            </td>
+                            <td class="align-middle py-3" style="font-size: 0.9rem; color: #000;">{{ c.maskapai }}</td>
+                            <td class="align-middle py-3" style="font-size: 0.9rem; color: #000;">{{ c.bandara_asal }} &rarr; {{ c.bandara_tujuan }}</td>
+                            <td class="align-middle py-3" style="font-size: 0.9rem; color: #000;">{{ c.tanggal_penerbangan|date:'Y-m-d' }}</td>
+                            <td class="align-middle py-3" style="font-size: 0.9rem; color: #000;">{{ c.flight_number }}</td>
+                            <td class="align-middle py-3" style="font-size: 0.9rem; color: #000;">{{ c.kelas_kabin }}</td>
+                            <td class="align-middle py-3" style="font-size: 0.9rem; color: #000;">{{ c.tanggal_pengajuan|date:'Y-m-d H:i:s' }}</td>
+                            <td class="align-middle py-3" style="font-size: 0.9rem; color: #000;">
+                                {% if c.status_penerimaan == 'Menunggu' %}
+                                    <span class="badge bg-warning text-dark">Menunggu</span>
+                                {% elif c.status_penerimaan == 'Disetujui' %}
+                                    <span class="badge bg-success">Disetujui</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Ditolak</span>
+                                {% endif %}
+                            </td>
+                            <td class="align-middle py-3 text-center" style="font-size: 0.9rem; color: #000;">
+                                {% if c.status_penerimaan == 'Menunggu' %}
+                                    <a href="#" class="text-decoration-none text-success me-3" data-bs-toggle="modal" data-bs-target="#modalSetuju{{ forloop.counter }}" title="Setuju">
+                                        <i class="bi bi-check2-circle"></i>
+                                    </a>
+                                    <a href="#" class="text-decoration-none text-danger" data-bs-toggle="modal" data-bs-target="#modalTolak{{ forloop.counter }}" title="Tolak">
+                                        <i class="bi bi-x-circle"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr> 
+
+                        <div class="modal fade" id="modalSetuju{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content rounded-4 border-0">
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="setujui">
+                                        <input type="hidden" name="id_klaim" value="{{ c.id }}">
+                                        
+                                        <div class="modal-header border-0 pb-0 mt-2 px-4">
+                                            <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Setujui Klaim</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body px-4" style="font-size: 0.9rem;">
+                                            <p class="text-muted">Miles akan ditambahkan ke akun member sesuai rute dan kelas kabin.</p>
+                                            <p class="mb-1">
+                                                <span class="text-muted">Klaim: </span> 
+                                                <span class="fw-bold text-dark">CLM-{{ c.id }}</span>
+                                            </p>
+                                            <p class="mb-1">
+                                                <span class="text-muted">Member: </span> 
+                                                <span class="fw-bold text-dark">{{ c.nama_member }}</span>
+                                            </p>
+                                            <p class="mb-1">
+                                                <span class="text-muted">Rute: </span> 
+                                                <span class="fw-bold text-dark">{{ c.bandara_asal }} &rarr; {{ c.bandara_tujuan }}</span>
+                                            </p>
+                                            <p class="mb-1">
+                                                <span class="text-muted">Kelas: </span> 
+                                                <span class="fw-bold text-dark">{{ c.kelas_kabin }}</span>
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                                            <button type="button" class="btn btn-aeromiles-secondary rounded-3 px-4 py-2" data-bs-dismiss="modal" style="font-size: 0.9rem;">Batal</button>
+                                            <button type="submit" class="btn btn-aeromiles-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Setujui</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="modalTolak{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content rounded-4 border-0">
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="tolak">
+                                        <input type="hidden" name="id_klaim" value="{{ c.id }}">
+                                        
+                                        <div class="modal-header border-0 pb-0 mt-2 px-4">
+                                            <h5 class="modal-title fw-bold" style="font-size: 1.1rem;">Tolak Klaim</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body px-4" style="font-size: 0.9rem;">
+                                            <p class="text-muted">Klaim akan ditolak dan member akan diinformasikan.</p>
+                                            <p class="mb-1">
+                                                <span class="text-muted">Klaim: </span> 
+                                                <span class="fw-bold text-dark">CLM-{{ c.id }}</span>
+                                            </p>
+                                            <p class="mb-1">
+                                                <span class="text-muted">Member: </span> 
+                                                <span class="fw-bold text-dark">{{ c.nama_member }}</span>
+                                            </p>
+                                            <p class="mb-1">
+                                                <span class="text-muted">Rute: </span> 
+                                                <span class="fw-bold text-dark">{{ c.bandara_asal }} &rarr; {{ c.bandara_tujuan }}</span>
+                                            </p>
+                                            <p class="mb-1">
+                                                <span class="text-muted">Kelas: </span> 
+                                                <span class="fw-bold text-dark">{{ c.kelas_kabin }}</span>
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                                            <button type="button" class="btn btn-aeromiles-secondary rounded-3 px-4 py-2" data-bs-dismiss="modal" style="font-size: 0.9rem;">Batal</button>
+                                            <button type="submit" class="btn btn-danger rounded-3 px-4 py-2" style="font-size: 0.9rem;">Tolak</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted" style="font-size: 0.9rem;">Belum ada Klaim Missing Miles.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

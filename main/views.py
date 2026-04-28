@@ -248,7 +248,7 @@ def kelola_mitra(request):
         cursor.execute("SELECT email_mitra, nama_mitra, tanggal_kerja_sama, id_penyedia FROM MITRA")
         mitra_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
         
-    return render(request, 'staf/manajemen_mitra.html', {'mitra_list': mitra_list})
+    return render(request, 'staf/kelola_mitra.html', {'mitra_list': mitra_list})
 
 @role_required('staf')
 def kelola_hadiah(request):
@@ -325,24 +325,254 @@ def kelola_hadiah(request):
         'penyedia_list': penyedia_list
     }
 
-    return render(request, 'staf/manajemen_hadiah.html', context)
+    return render(request, 'staf/kelola_hadiah.html', context)
 
 @role_required('member')
-def claim_missing_miles_member(request):
+def klaim_miles(request):
     email_user = request.session.get('email')
+
+    status_filter = request.GET.get('status', 'semua')
+
     with connection.cursor() as cursor:
+        if request.method == 'POST':
+            action = request.POST.get('action')
+
+            if action == 'create':
+                kode_maskapai = request.POST.get('kode_maskapai')
+                kelas_kabin = request.POST.get('kelas_kabin')
+                bandara_asal = request.POST.get('bandara_asal')
+                bandara_tujuan = request.POST.get('bandara_tujuan')
+                tanggal_penerbangan = request.POST.get('tanggal_penerbangan')
+                flight_number = request.POST.get('flight_number')
+                nomor_tiket = request.POST.get('nomor_tiket')
+                pnr = request.POST.get('pnr')
+
+                # Generate ID klaim
+                cursor.execute("SELECT MAX(id) FROM CLAIM_MISSING_MILES")
+                id_klaim = int(cursor.fetchone()[0]) + 1
+
+                cursor.execute("""
+                    INSERT INTO CLAIM_MISSING_MILES id, email_member, maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, status_penerimaan, timestamp
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                """, [id_klaim, email_user, kode_maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, "Menunggu"])
+
+            elif action == 'update':
+                kode_maskapai = request.POST.get('kode_maskapai')
+                kelas_kabin = request.POST.get('kelas_kabin')
+                bandara_asal = request.POST.get('bandara_asal')
+                bandara_tujuan = request.POST.get('bandara_tujuan')
+                tanggal_penerbangan = request.POST.get('tanggal_penerbangan')
+                flight_number = request.POST.get('flight_number')
+                nomor_tiket = request.POST.get('nomor_tiket')
+                pnr = request.POST.get('pnr')
+                id_klaim = request.POST.get('id_klaim')
+
+                cursor.execute("""
+                    UPDATE CLAIM_MISSING_MILES SET maskapai=%s, kelas_kabin=%s, bandara_asal=%s, bandara_tujuan=%s, tanggal_penerbangan=%s, flight_number=%s, 
+                    nomor_tiket=%s, pnr=%s
+                    WHERE id=%s
+                """, [kode_maskapai, kelas_kabin, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, pnr, id_klaim])
+
+            elif action == 'delete':
+                id_klaim = request.POST.get('id_klaim')
+                cursor.execute("DELETE FROM CLAIM_MISSING_MILES WHERE id=%s", [id_klaim])
+
+            return redirect('klaim_miles')
+        
+        # READ (GET)
         # Mengambil klaim hanya milik member yang sedang login
+        if status_filter in ['menunggu', 'disetujui', 'ditolak']:
+            cursor.execute("""
+                SELECT c.id, c.maskapai AS kode_maskapai, c.bandara_asal, c.bandara_tujuan, c.tanggal_penerbangan, c.flight_number, c.nomor_tiket, c.pnr, c.kelas_kabin, c.status_penerimaan, c.timestamp AS tanggal_pengajuan, m.nama_maskapai,
+                    ba.iata_code AS iata_code_asal, ba.nama AS nama_bandara_asal, ba.kota AS kota_asal, ba.negara AS negara_asal,
+                    bt.iata_code AS iata_code_tujuan, bt.nama AS nama_bandara_tujuan, bt.kota AS kota_tujuan, bt.negara AS negara_tujuan
+                FROM CLAIM_MISSING_MILES c
+                JOIN MASKAPAI m ON c.maskapai = m.kode_maskapai
+                JOIN BANDARA ba ON c.bandara_asal = ba.iata_code
+                JOIN BANDARA bt ON c.bandara_tujuan = bt.iata_code
+                WHERE email_member = %s AND status_penerimaan = %s
+                ORDER BY tanggal_penerbangan DESC 
+            """, [email_user, status_filter.title()])
+        else:
+            cursor.execute("""
+                SELECT c.id, c.maskapai AS kode_maskapai, c.bandara_asal, c.bandara_tujuan, c.tanggal_penerbangan, c.flight_number, c.nomor_tiket, c.pnr, c.kelas_kabin, c.status_penerimaan, c.timestamp AS tanggal_pengajuan, m.nama_maskapai,
+                    ba.iata_code AS iata_code_asal, ba.nama AS nama_bandara_asal, ba.kota AS kota_asal, ba.negara AS negara_asal,
+                    bt.iata_code AS iata_code_tujuan, bt.nama AS nama_bandara_tujuan, bt.kota AS kota_tujuan, bt.negara AS negara_tujuan
+                FROM CLAIM_MISSING_MILES c
+                JOIN MASKAPAI m ON c.maskapai = m.kode_maskapai
+                JOIN BANDARA ba ON c.bandara_asal = ba.iata_code
+                JOIN BANDARA bt ON c.bandara_tujuan = bt.iata_code
+                WHERE email_member = %s
+                ORDER BY tanggal_penerbangan DESC
+            """, [email_user])
+
+        claim_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+        cursor.execute("""
+            SELECT kode_maskapai, nama_maskapai
+            FROM MASKAPAI
+        """)
+        maskapai_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
         cursor.execute("""
             SELECT *
-            FROM claim_missing_miles
-            WHERE email_member = %s
-            ORDER BY tanggal_penerbangan DESC
-        """, [email_user])
+            FROM BANDARA
+        """)
+        bandara_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+    context = {
+        'claim_list': claim_list,
+        'maskapai_list': maskapai_list,
+        'bandara_list': bandara_list,
+        'current_status': status_filter
+    }
         
-        columns = [col[0] for col in cursor.description]
-        claims = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        
-    return render(request, 'member/daftar_claim.html', {'claims': claims})
+    return render(request, 'member/klaim_miles.html', context)
+
+@role_required('staf')
+def kelola_klaim(request):
+    email_user = request.session.get('email')
+
+    status_filter = request.GET.get('status', 'semua')
+    maskapai_filter = request.GET.get('maskapai', 'semua')
+    tanggal_urut = request.GET.get('tanggal', 'terbaru')
+
+    query = """
+        SELECT id, CONCAT(first_mid_name, ' ', last_name) AS nama_member, email_member, maskapai, bandara_asal, bandara_tujuan, 
+               tanggal_penerbangan, flight_number, kelas_kabin, 
+               status_penerimaan, timestamp as tanggal_pengajuan
+        FROM CLAIM_MISSING_MILES c
+        JOIN PENGGUNA p ON c.email_member = p.email
+        WHERE 1=1
+    """
+    params = []
+
+    if status_filter != "semua":
+        query += " AND status_penerimaan = %s"
+        params.append(status_filter.title())
+
+    if maskapai_filter != 'semua':
+        query += " AND maskapai = %s"
+        params.append(maskapai_filter)
+    
+    if tanggal_urut == 'terlama':
+        query += " ORDER BY timestamp ASC"
+    else:
+        query += " ORDER BY timestamp DESC"
+
+    with connection.cursor() as cursor:
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            id_klaim = request.POST.get('id_klaim')
+
+            if action == "setujui":
+                cursor.execute("""
+                    UPDATE CLAIM_MISSING_MILES
+                    SET status_penerimaan="Disetujui", email_staf=%s 
+                    WHERE id = %s
+                """, [email_user, id_klaim])
+            
+            elif action == "tolak":
+                cursor.execute("""
+                    UPDATE CLAIM_MISSING_MILES
+                    SET status_penerimaan="Ditolak", email_staf=%s 
+                    WHERE id = %s
+                """, [email_user, id_klaim])
+            
+            return redirect('klaim_miles')
+            
+        cursor.execute(query, params)
+        claim_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+        cursor.execute("""
+            SELECT DISTINCT m.kode_maskapai, m.nama_maskapai
+            FROM CLAIM_MISSING_MILES c
+            JOIN MASKAPAI m ON c.maskapai = m.kode_maskapai
+            ORDER BY m.kode_maskapai
+        """)
+        maskapai_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+    context = {
+        "claim_list": claim_list,
+        "maskapai_list": maskapai_list,
+        "current_status": status_filter,
+        "current_maskapai": maskapai_filter,
+        "current_tanggal": tanggal_urut
+    }
+
+    return render(request, 'staf/kelola_klaim.html', context)
+
+@role_required('member')
+def transfer_miles(request):
+    email_user = request.session.get('email')
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT award_miles FROM MEMBER WHERE email = %s", [email_user])
+        award_miles = cursor.fetchone()[0]
+
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            
+            if action == 'create':
+                email_penerima = request.POST.get('email_penerima')
+
+                if email_penerima == email_user:
+                    messages.error(request, 'Transfer kepada diri sendiri tidak diperbolehkan.')
+                    return redirect('transfer_miles')
+
+                cursor.execute("SELECT email, password FROM PENGGUNA WHERE email = %s", [email_penerima])
+                user = cursor.fetchone()
+
+                if not user:
+                    messages.error(request, 'Email penerima tidak ditemukan.')
+                    return redirect('transfer_miles')
+                
+                jumlah_miles = int(request.POST.get('jumlah_miles'))
+                catatan = request.POST.get('catatan') or None
+
+                if award_miles < jumlah_miles:
+                    messages.error(request, 'Award miles tidak cukup.')
+                    return redirect('transfer_miles')
+                
+                cursor.execute("""
+                    INSERT INTO TRANSFER VALUES (%s, %s, NOW(), %s, %s)
+                """, [email_user, email_penerima, jumlah_miles, catatan])
+
+                cursor.execute("""
+                    UPDATE MEMBER
+                    SET award_miles = award_miles - %s
+                    WHERE email = %s
+                """, [award_miles, email_user])
+
+                cursor.execute("""
+                    UPDATE MEMBER
+                    SET award_miles = award_miles + %s
+                    WHERE email = %s
+                """, [award_miles, email_penerima])
+
+                messages.success(request, 'Transfer miles berhasil dilakukan!')
+                return redirect('transfer_miles')
+
+        cursor.execute("""
+            (SELECT t.timestamp, CONCAT(p.first_mid_name, ' ', p.last_name) AS nama_member, p.email, t.jumlah, t.catatan, 'Kirim' AS tipe
+            FROM TRANSFER t
+            JOIN PENGGUNA p ON t.email_member_2 = p.email
+            WHERE t.email_member_1 = %s)
+            UNION
+            (SELECT t.timestamp, CONCAT(p.first_mid_name, ' ', p.last_name) AS nama_member, p.email, t.jumlah, t.catatan, 'Terima' AS tipe
+            FROM TRANSFER t
+            JOIN PENGGUNA p ON t.email_member_1 = p.email
+            WHERE t.email_member_2 = %s)
+            ORDER BY timestamp
+        """, [email_user, email_user])
+        transfer_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+    
+    context = {
+        "award_miles": award_miles,
+        "transfer_list": transfer_list
+    }
+
+    return render(request, 'member/transfer_miles.html', context)
 
 def redeem_view(request):
     email = request.session.get('email')

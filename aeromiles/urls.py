@@ -24,8 +24,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # guest
-    path('login/', views.login_view, name='login'),
-    path('register/', views.register_view, name='register'),
+    path('login/', views.login, name='login'),
+    path('register/', views.register, name='register'),
 
     # member
     path('member/dashboard/', views.dashboard_member, name='dashboard_member'),
@@ -45,6 +45,6 @@ urlpatterns = [
     path('staf/laporan/', views.laporan_transaksi_view, name='laporan'),
     
     
-    path('logout/', views.logout_view, name='logout'), 
+    path('logout/', views.logout, name='logout'), 
     path('', RedirectView.as_view(url='/login/', permanent=False)),
 ]

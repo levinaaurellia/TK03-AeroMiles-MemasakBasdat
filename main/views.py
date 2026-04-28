@@ -1,3 +1,4 @@
+import bcrypt
 from django.shortcuts import render, redirect
 from django.db import connection
 from django.contrib import messages
@@ -6,7 +7,7 @@ from datetime import date
 from datetime import datetime
 from .decorators import role_required
 
-def login_view(request):
+def login(request):
     # Jika sudah login, cegah akses halaman login
     if request.session.get('email'):
         if request.session.get('role') == 'staf':
@@ -21,9 +22,12 @@ def login_view(request):
             # Cari data pengguna berdasarkan email
             cursor.execute("SELECT email, password FROM PENGGUNA WHERE email = %s", [email])
             user = cursor.fetchone()
-            
+
+            input_bytes = password.encode('utf-8')
+            db_bytes = user[1].encode('utf-8') if user else None
+
             # Cocokkan password
-            if user and password == user[1]: 
+            if user and bcrypt.checkpw(input_bytes, db_bytes):
                 
                 # Cek apakah user adalah staf
                 cursor.execute("SELECT email FROM STAF WHERE email = %s", [email])
@@ -44,7 +48,7 @@ def login_view(request):
                 
     return render(request, 'guest/login.html')
 
-def register_view(request):
+def register(request):
     # Jika sudah login, cegah akses halaman register
     if request.session.get('email'):
         if request.session.get('role') == 'staf':
@@ -68,9 +72,8 @@ def register_view(request):
             messages.error(request, 'Password dan konfirmasi password tidak cocok.')
             return redirect('register')
             
-        # Hash password sebelum disimpan
-        # hashed_password = make_password(password) 
-        hashed_password = password # TODO: implementasi hashing password
+        # implementasi hashing password
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
         with connection.cursor() as cursor:
             # Validasi duplikasi email
@@ -125,7 +128,7 @@ def register_view(request):
 
     return render(request, 'guest/register.html')
 
-def logout_view(request):
+def logout(request):
     # Mengakhiri session pengguna
     request.session.flush()
     return redirect('login')
@@ -662,7 +665,6 @@ def package_view(request):
         """, [email])
         award_miles = cursor.fetchone()[0]
 
-        # ✅ FIX NAMA KOLOM
         cursor.execute("""
             SELECT id, jumlah_award_miles, harga_paket
             FROM AWARD_MILES_PACKAGE
@@ -711,7 +713,7 @@ def tier_view(request):
 
     with connection.cursor() as cursor:
 
-        # ambil data member (FIX: pakai id_tier)
+        # ambil data member
         cursor.execute("""
             SELECT award_miles, id_tier
             FROM MEMBER

@@ -8,48 +8,8 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .navbar-custom {
-            background: linear-gradient(90deg, #002244, #003366);
-            padding: 10px 0;
-        }
-
-        .nav-link {
-            color: #cfd8dc !important;
-            font-size: 14px;
-            margin-right: 12px;
-        }
-
-        .nav-link:hover {
-            color: #ffffff !important;
-        }
-
-        .nav-link.active {
-            color: #4fc3f7 !important;
-            font-weight: 600;
-        }
-
-        .logout {
-            color: #ff5252 !important;
-        }
-
-        .user-info {
-            font-size: 12px;
-            color: #90a4ae;
-            margin-top: 3px;
-        }
-
-        .navbar-brand {
-            color: white !important;
-            font-weight: bold;
-            margin-right: 20px;
-        }
-    </style>
 </head>
 <body>
 
@@ -75,8 +35,8 @@
                 {% if request.session.email and request.session.role == 'member' %}
                     <a class="nav-link active" href="{% url 'dashboard_member' %}">Dashboard</a>
                     <a class="nav-link" href="#">Identitas Saya</a>
-                    <a class="nav-link" href="#">Klaim Miles</a>
-                    <a class="nav-link" href="#">Transfer Miles</a>
+                    <a class="nav-link" href="{% url 'klaim_miles' %}">Klaim Miles</a>
+                    <a class="nav-link" href="{% url 'transfer_miles' %}"">Transfer Miles</a>
                     <a class="nav-link" href="{% url 'redeem' %}">Redeem Hadiah</a>
                     <a class="nav-link" href="{% url 'package' %}">Beli Package</a>
                     <a class="nav-link" href="{% url 'tier' %}">Info Tier</a>
@@ -87,9 +47,9 @@
                 {% if request.session.email and request.session.role == 'staf' %}
                     <a class="nav-link active" href="{% url 'dashboard_staf' %}">Dashboard</a>
                     <a class="nav-link" href="#">Kelola Member</a>
-                    <a class="nav-link" href="#">Kelola Klaim</a>
-                    <a class="nav-link" href="#">Kelola Hadiah & Penyedia</a>
-                    <a class="nav-link" href="#">Kelola Mitra</a>
+                    <a class="nav-link" href="{% url 'kelola_klaim' %}">Kelola Klaim</a>
+                    <a class="nav-link" href="{% url 'kelola_hadiah' %}">Kelola Hadiah & Penyedia</a>
+                    <a class="nav-link" href="{% url 'kelola_mitra' %}">Kelola Mitra</a>
                     <a class="nav-link" href="{% url 'laporan' %}">Laporan Transaksi</a>
                     <a class="nav-link" href="#">Pengaturan Profil</a>
                 {% endif %}
@@ -128,6 +88,9 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/toast.js' %}"></script>
+<script src="{% static 'js/toggle_password.js' %}"></script>
+<script src="{% static 'js/toggle_register.js' %}"></script>
 
 </body>
 </html>

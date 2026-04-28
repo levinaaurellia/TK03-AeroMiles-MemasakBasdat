@@ -53,7 +53,7 @@
                     <tbody>
                         {% for c in claim_list %}
                         <tr class="border-bottom">
-                            <td class="align-middle py-3 ps-3" style="font-size: 0.9rem; color: #000;">CLM-{{ c.id }}</td>
+                            <td class="align-middle py-3 ps-3" style="font-size: 0.9rem; color: #000;">CLM-{{ c.id|stringformat:"03d" }}</td>
                             <td class="align-middle py-3" style="font-size: 0.9rem; color: #000;">
                                 <p class="mb-0 fw-bold" style="color: #000; font-size: 0.95rem;">{{ c.nama_member }}</p>
                                 <p class="mb-0 text-muted" style="font-size: 0.85rem;">{{ c.email_member }}</p>
@@ -101,7 +101,7 @@
                                             <p class="text-muted">Miles akan ditambahkan ke akun member sesuai rute dan kelas kabin.</p>
                                             <p class="mb-1">
                                                 <span class="text-muted">Klaim: </span> 
-                                                <span class="fw-bold text-dark">CLM-{{ c.id }}</span>
+                                                <span class="fw-bold text-dark">CLM-{{ c.id|stringformat:"03d" }}</span>
                                             </p>
                                             <p class="mb-1">
                                                 <span class="text-muted">Member: </span> 
@@ -141,7 +141,7 @@
                                             <p class="text-muted">Klaim akan ditolak dan member akan diinformasikan.</p>
                                             <p class="mb-1">
                                                 <span class="text-muted">Klaim: </span> 
-                                                <span class="fw-bold text-dark">CLM-{{ c.id }}</span>
+                                                <span class="fw-bold text-dark">CLM-{{ c.id|stringformat:"03d" }}</span>
                                             </p>
                                             <p class="mb-1">
                                                 <span class="text-muted">Member: </span> 

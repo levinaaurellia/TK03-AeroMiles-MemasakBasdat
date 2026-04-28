@@ -25,7 +25,7 @@
                         <tr class="border-bottom">
                             <td class="py-3 ps-3" style="font-size: 0.9rem;">{{ m.email_mitra }}</td>
                             <td class="py-3 fw-bold" style="font-size: 0.9rem; color: #000;">{{ m.nama_mitra }}</td>
-                            <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ m.tanggal_kerja_sama }}</td>
+                            <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ m.tanggal_kerja_sama|date:"Y-m-d" }}</td>
                             <td class="py-3 text-center">
                                 <a href="#" class="text-decoration-none text-secondary me-3" data-bs-toggle="modal" data-bs-target="#modalEdit{{ forloop.counter }}" title="Edit">
                                     <i class="bi bi-pencil"></i>

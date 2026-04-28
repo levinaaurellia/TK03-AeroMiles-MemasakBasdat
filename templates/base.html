@@ -40,7 +40,7 @@
                     <a class="nav-link" href="{% url 'redeem' %}">Redeem Hadiah</a>
                     <a class="nav-link" href="{% url 'package' %}">Beli Package</a>
                     <a class="nav-link" href="{% url 'tier' %}">Info Tier</a>
-                    <a class="nav-link" href="#">Pengaturan Profil</a>
+                    <a class="nav-link" href="{% url 'pengaturan_profil' %}">Pengaturan Profil</a>
                 {% endif %}
 
                 <!-- ===== STAF ===== -->
@@ -51,7 +51,7 @@
                     <a class="nav-link" href="{% url 'kelola_hadiah' %}">Kelola Hadiah & Penyedia</a>
                     <a class="nav-link" href="{% url 'kelola_mitra' %}">Kelola Mitra</a>
                     <a class="nav-link" href="{% url 'laporan' %}">Laporan Transaksi</a>
-                    <a class="nav-link" href="#">Pengaturan Profil</a>
+                    <a class="nav-link" href="{% url 'pengaturan_profil' %}">Pengaturan Profil</a>
                 {% endif %}
 
             </div>

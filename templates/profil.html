@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055; margin-top: 60px;">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast align-items-center text-white {% if message.tags == 'error' %}bg-danger{% else %}bg-success{% endif %} border-0" 
+                 role="alert" aria-live="assertive" aria-atomic="true" 
+                 data-bs-delay="4000"> 
+                 <div class="d-flex">
+                    <div class="toast-body fw-medium" style="font-size: 0.95rem;">
+                        {% if message.tags == 'error' %}
+                            <i class="bi bi-exclamation-circle me-2"></i>
+                        {% else %}
+                            <i class="bi bi-check-circle me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<div class="container my-4 mb-5" style="max-width: 750px;">
+    <h4 class="fw-bold mb-4" style="color: #001a38;">Pengaturan Profil</h4>
+    
+    <form method="POST" class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_profil">
+        
+        <h6 class="fw-bold mb-4" style="color: #333;">Data Profil</h6>
+        
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Email</label>
+                <input type="text" class="form-control" value="{{ user.email }}" readonly style="background-color: #fcfcfc;">
+            </div>
+
+            {% if role == 'member' %}
+            <div class="col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nomor Member</label>
+                <input type="text" class="form-control" value="{{ user.nomor_member }}" readonly style="background-color: #fcfcfc;">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Tanggal Bergabung</label>
+                <input type="text" class="form-control" value="{{ user.tanggal_bergabung|date:'Y-m-d' }}" readonly style="background-color: #fcfcfc;">
+            </div>
+            {% else %}
+            <div class="col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">ID Staf</label>
+                <input type="text" class="form-control" value="{{ user.id_staf }}" readonly style="background-color: #fcfcfc;">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Kode Maskapai</label>
+                <select name="kode_maskapai" class="form-select">
+                    {% for m in maskapai_list %}
+                    <option value="{{ m.kode_maskapai }}" {% if user.kode_maskapai == m.kode_maskapai %}selected{% endif %}>{{ m.nama_maskapai }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div class="col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Salutation</label>
+                <select name="salutation" class="form-select">
+                    <option value="Mr." {% if user.salutation == 'Mr.' %}selected{% endif %}>Mr.</option>
+                    <option value="Mrs." {% if user.salutation == 'Mrs.' %}selected{% endif %}>Mrs.</option>
+                    <option value="Ms." {% if user.salutation == 'Ms.' %}selected{% endif %}>Ms.</option>
+                    <option value="Dr." {% if user.salutation == 'Dr.' %}selected{% endif %}>Dr.</option>
+                </select>
+            </div>
+            <div class="col-md-6 d-none d-md-block"></div> 
+
+            <div class="col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nama Depan</label>
+                <input type="text" name="first_name" class="form-control" value="{{ user.nama_depan_saja }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nama Tengah</label>
+                <input type="text" name="mid_name" class="form-control" value="{{ user.nama_tengah_saja }}" placeholder="Opsional">
+            </div>
+
+            <div class="col-md-12">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nama Belakang</label>
+                <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Kewarganegaraan</label>
+                <select name="kewarganegaraan" class="form-select" required>
+                    <option value="Australia" {% if user.kewarganegaraan == 'Australia' %}selected{% endif %}>Australia</option>
+                    <option value="Brazil" {% if user.kewarganegaraan == 'Brazil' %}selected{% endif %}>Brazil</option>
+                    <option value="China" {% if user.kewarganegaraan == 'China' %}selected{% endif %}>China</option>
+                    <option value="Denmark" {% if user.kewarganegaraan == 'Denmark' %}selected{% endif %}>Denmark</option>
+                    <option value="Egypt" {% if user.kewarganegaraan == 'Egypt' %}selected{% endif %}>Egypt</option>
+                    <option value="Germany" {% if user.kewarganegaraan == 'Germany' %}selected{% endif %}>Germany</option>
+                    <option value="Indonesia" {% if user.kewarganegaraan == 'Indonesia' %}selected{% endif %}>Indonesia</option>
+                    <option value="Italy" {% if user.kewarganegaraan == 'Italy' %}selected{% endif %}>Italy</option>
+                    <option value="Japan" {% if user.kewarganegaraan == 'Japan' %}selected{% endif %}>Japan</option>
+                    <option value="Mexico" {% if user.kewarganegaraan == 'Mexico' %}selected{% endif %}>Mexico</option>
+                    <option value="Pakistan" {% if user.kewarganegaraan == 'Pakistan' %}selected{% endif %}>Pakistan</option>
+                    <option value="Russia" {% if user.kewarganegaraan == 'Russia' %}selected{% endif %}>Russia</option>
+                    <option value="South Korea" {% if user.kewarganegaraan == 'South Korea' %}selected{% endif %}>South Korea</option>
+                    <option value="Spain" {% if user.kewarganegaraan == 'Spain' %}selected{% endif %}>Spain</option>
+                    <option value="Sweden" {% if user.kewarganegaraan == 'Sweden' %}selected{% endif %}>Sweden</option>
+                    <option value="UAE" {% if user.kewarganegaraan == 'UAE' %}selected{% endif %}>UAE</option>
+                    <option value="UK" {% if user.kewarganegaraan == 'UK' %}selected{% endif %}>UK</option>
+                    <option value="USA" {% if user.kewarganegaraan == 'USA' %}selected{% endif %}>USA</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Country Code</label>
+                <select name="country_code" class="form-select" required>
+                    <option value="+1" {% if user.country_code == '+1' %}selected{% endif %}>+1</option>
+                    <option value="+7" {% if user.country_code == '+7' %}selected{% endif %}>+7</option>
+                    <option value="+20" {% if user.country_code == '+20' %}selected{% endif %}>+20</option>
+                    <option value="+34" {% if user.country_code == '+34' %}selected{% endif %}>+34</option>
+                    <option value="+39" {% if user.country_code == '+39' %}selected{% endif %}>+39</option>
+                    <option value="+44" {% if user.country_code == '+44' %}selected{% endif %}>+44</option>
+                    <option value="+45" {% if user.country_code == '+45' %}selected{% endif %}>+45</option>
+                    <option value="+46" {% if user.country_code == '+46' %}selected{% endif %}>+46</option>
+                    <option value="+49" {% if user.country_code == '+49' %}selected{% endif %}>+49</option>
+                    <option value="+52" {% if user.country_code == '+52' %}selected{% endif %}>+52</option>
+                    <option value="+55" {% if user.country_code == '+55' %}selected{% endif %}>+55</option>
+                    <option value="+61" {% if user.country_code == '+61' %}selected{% endif %}>+61</option>
+                    <option value="+62" {% if user.country_code == '+62' %}selected{% endif %}>+62</option>
+                    <option value="+65" {% if user.country_code == '+65' %}selected{% endif %}>+65</option>
+                    <option value="+81" {% if user.country_code == '+81' %}selected{% endif %}>+81</option>
+                    <option value="+82" {% if user.country_code == '+82' %}selected{% endif %}>+82</option>
+                    <option value="+86" {% if user.country_code == '+86' %}selected{% endif %}>+86</option>
+                    <option value="+92" {% if user.country_code == '+92' %}selected{% endif %}>+92</option>
+                    <option value="+971" {% if user.country_code == '+971' %}selected{% endif %}>+971</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nomor HP</label>
+                <input type="text" name="mobile_number" class="form-control" value="{{ user.mobile_number }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Tanggal Lahir</label>
+                <input type="date" name="tanggal_lahir" class="form-control" value="{{ user.tanggal_lahir|date:'Y-m-d' }}" required>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-2">
+            <button type="submit" class="btn btn-aeromiles-primary px-4 py-2" style="font-size: 0.9rem; font-weight: 500; border-radius: 6px;">Simpan Perubahan</button>
+        </div>
+    </form>
+
+    <div class="card shadow-sm border-0 rounded-4 p-4 mb-5">
+        <h6 class="fw-bold mb-4" style="color: #333;">Ubah Password</h6>
+        <div>
+            <button type="button" class="btn btn-light border px-4 py-2" data-bs-toggle="modal" data-bs-target="#modalPassword" style="font-size: 0.9rem; font-weight: 600; color: #495057; border-radius: 6px;">
+                Ubah Password
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPassword" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content border-0 shadow rounded-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="ubah_password">
+            <div class="modal-header border-0 pb-0 mt-2 px-4">
+                <h5 class="modal-title fw-bold" style="font-size: 1.1rem; color: #001a38;">Ubah Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pt-3 pb-2">
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Password Lama</label>
+                    <input type="password" name="password_lama" class="form-control py-2" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Password Baru</label>
+                    <input type="password" name="password_baru" class="form-control py-2" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Konfirmasi Password Baru</label>
+                    <input type="password" name="konfirmasi_password" class="form-control py-2" required>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                <button type="button" class="btn btn-light border rounded-3 px-4 py-2" data-bs-dismiss="modal" style="font-size: 0.9rem;">Batal</button>
+                <button type="submit" class="btn btn-aeromiles-primary rounded-3 px-4 py-2" style="font-size: 0.9rem;">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -26,6 +26,7 @@ urlpatterns = [
     # guest
     path('login/', views.login, name='login'),
     path('register/', views.register, name='register'),
+    path('profil/', views.pengaturan_profil, name='pengaturan_profil'),
 
     # member
     path('member/dashboard/', views.dashboard_member, name='dashboard_member'),

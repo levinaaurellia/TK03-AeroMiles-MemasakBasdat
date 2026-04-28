@@ -211,6 +211,91 @@ def dashboard_staf(request):
     }
     return render(request, 'staf/dashboard.html', context)
 
+def pengaturan_profil(request):
+    email_user = request.session.get('email')
+    role_user = request.session.get('role')
+    
+    if not email_user: 
+        return redirect('login')
+
+    with connection.cursor() as cursor:
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            
+            if action == 'update_profil':
+                # GABUNGKAN NAMA DEPAN DAN TENGAH SEBELUM DISIMPAN
+                nama_depan = request.POST.get('first_name', '').strip()
+                nama_tengah = request.POST.get('mid_name', '').strip()
+                first_mid_name = f"{nama_depan} {nama_tengah}".strip()
+                
+                cursor.execute("""
+                    UPDATE PENGGUNA SET salutation=%s, first_mid_name=%s, last_name=%s, 
+                    country_code=%s, mobile_number=%s, kewarganegaraan=%s, tanggal_lahir=%s
+                    WHERE email=%s
+                """, [
+                    request.POST.get('salutation'), first_mid_name, request.POST.get('last_name'), 
+                    request.POST.get('country_code'), request.POST.get('mobile_number'), 
+                    request.POST.get('kewarganegaraan'), request.POST.get('tanggal_lahir'), email_user
+                ])
+                
+                if role_user == 'staf':
+                    cursor.execute("UPDATE STAF SET kode_maskapai=%s WHERE email=%s", 
+                                 [request.POST.get('kode_maskapai'), email_user])
+                
+                messages.success(request, 'Profil berhasil diperbarui!')
+
+            elif action == 'ubah_password':
+                pw_lama = request.POST.get('password_lama')
+                pw_baru = request.POST.get('password_baru')
+                konfirmasi_pw = request.POST.get('konfirmasi_password')
+                
+                # CEK APAKAH KONFIRMASI PASSWORD SAMA
+                if pw_baru != konfirmasi_pw:
+                    messages.error(request, 'Konfirmasi password baru tidak cocok!')
+                    return redirect('pengaturan_profil')
+                
+                cursor.execute("SELECT password FROM PENGGUNA WHERE email=%s", [email_user])
+                hashed_pw = cursor.fetchone()[0]
+                
+                if bcrypt.checkpw(pw_lama.encode('utf-8'), hashed_pw.encode('utf-8')):
+                    new_hashed = bcrypt.hashpw(pw_baru.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                    cursor.execute("UPDATE PENGGUNA SET password=%s WHERE email=%s", [new_hashed, email_user])
+                    messages.success(request, 'Password berhasil diubah!')
+                else:
+                    messages.error(request, 'Password lama salah.')
+            
+            return redirect('pengaturan_profil')
+
+        # READ: Ambil data untuk ditampilkan di form
+        if role_user == 'member':
+            cursor.execute("""
+                SELECT p.*, m.nomor_member, m.tanggal_bergabung 
+                FROM PENGGUNA p JOIN MEMBER m ON p.email = m.email WHERE p.email = %s
+            """, [email_user])
+        else:
+            cursor.execute("""
+                SELECT p.*, s.id_staf, s.kode_maskapai 
+                FROM PENGGUNA p JOIN STAF s ON p.email = s.email WHERE p.email = %s
+            """, [email_user])
+        
+        user_data = dict(zip([col[0] for col in cursor.description], cursor.fetchone()))
+        
+        # MEMISAHKAN NAMA DEPAN DAN TENGAH UNTUK DITAMPILKAN DI FORM 
+        if user_data.get('first_mid_name'):
+            # Potong nama berdasarkan spasi pertama saja
+            nama_split = user_data['first_mid_name'].split(' ', 1)
+            user_data['nama_depan_saja'] = nama_split[0]
+            # Jika ada nama tengah, masukkan ke variabel terpisah
+            user_data['nama_tengah_saja'] = nama_split[1] if len(nama_split) > 1 else ''
+        else:
+            user_data['nama_depan_saja'] = ''
+            user_data['nama_tengah_saja'] = ''
+        
+        cursor.execute("SELECT kode_maskapai, nama_maskapai FROM MASKAPAI")
+        maskapai_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+    return render(request, 'profil.html', {'user': user_data, 'role': role_user, 'maskapai_list': maskapai_list})
+
 @role_required('staf')
 def kelola_mitra(request):
     with connection.cursor() as cursor:

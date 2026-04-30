@@ -29,7 +29,7 @@ urlpatterns = [
     path('profil/', views.pengaturan_profil, name='pengaturan_profil'),
 
     # member
-    path('kelola-member/', views.kelola_member, name='kelola_member'),
+    path('identitas-saya/', views.identitas_saya, name='identitas_saya'),
     path('member/dashboard/', views.dashboard_member, name='dashboard_member'),
     path('member/klaim-miles/', views.klaim_miles, name='klaim_miles'),
     path('member/transfer-miles/', views.transfer_miles, name='transfer_miles'),
@@ -40,6 +40,7 @@ urlpatterns = [
     path('member/package/beli/', views.beli_package, name='beli_package'),
 
     # staf
+    path('kelola-member/', views.kelola_member, name='kelola_member'),
     path('staf/dashboard/', views.dashboard_staf, name='dashboard_staf'),
     path('staf/kelola-hadiah/', views.kelola_hadiah, name='kelola_hadiah'),
     path('staf/kelola-mitra/', views.kelola_mitra, name='kelola_mitra'),

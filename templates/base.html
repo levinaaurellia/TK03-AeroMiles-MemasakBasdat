@@ -34,7 +34,7 @@
                 <!-- ===== MEMBER ===== -->
                 {% if request.session.email and request.session.role == 'member' %}
                     <a class="nav-link active" href="{% url 'dashboard_member' %}">Dashboard</a>
-                    <a class="nav-link" href="#">Identitas Saya</a>
+                    <a class="nav-link" href="{% url 'identitas_saya' %}">Identitas Saya</a>
                     <a class="nav-link" href="{% url 'klaim_miles' %}">Klaim Miles</a>
                     <a class="nav-link" href="{% url 'transfer_miles' %}"">Transfer Miles</a>
                     <a class="nav-link" href="{% url 'redeem' %}">Redeem Hadiah</a>

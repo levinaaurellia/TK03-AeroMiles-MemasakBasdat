@@ -414,6 +414,101 @@ def kelola_member(request):
         'tier_list': tier_list
     })
 
+def identitas_saya(request):
+    # Ambil email dan role dari session login
+    email_user = request.session.get('email')
+    role_user = request.session.get('role')
+
+    # Keamanan 1: Pastikan yang masuk halaman ini HANYA role 'member'
+    if not email_user or role_user != 'member':
+        return redirect('login') 
+
+    with connection.cursor() as cursor:
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            
+            if action == 'tambah_identitas':
+                try:
+                    cursor.execute("""
+                        INSERT INTO IDENTITAS (nomor, email_member, tanggal_habis, tanggal_terbit, negara_penerbit, jenis)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, [
+                        request.POST.get('nomor_dokumen'),
+                        email_user, # Otomatis pakai email member yang sedang login
+                        request.POST.get('tanggal_habis'),
+                        request.POST.get('tanggal_terbit'),
+                        request.POST.get('negara_penerbit'),
+                        request.POST.get('jenis_dokumen')
+                    ])
+                    messages.success(request, 'Identitas baru berhasil ditambahkan!')
+                except Exception as e:
+                    # Error kalau nomor dokumen sudah ada di database (Primary Key constraint)
+                    messages.error(request, 'Gagal menambahkan identitas: Nomor dokumen sudah terdaftar.')
+
+            elif action == 'edit_identitas':
+                try:
+                    # Keamanan 2: UPDATE harus menyertakan email_member agar tidak bisa mengedit data orang lain
+                    cursor.execute("""
+                        UPDATE IDENTITAS 
+                        SET jenis=%s, negara_penerbit=%s, tanggal_terbit=%s, tanggal_habis=%s
+                        WHERE nomor=%s AND email_member=%s
+                    """, [
+                        request.POST.get('jenis_dokumen'),
+                        request.POST.get('negara_penerbit'),
+                        request.POST.get('tanggal_terbit'),
+                        request.POST.get('tanggal_habis'),
+                        request.POST.get('nomor_dokumen'), # Dari input readonly
+                        email_user 
+                    ])
+                    messages.success(request, 'Identitas berhasil diperbarui!')
+                except Exception as e:
+                    messages.error(request, f'Gagal mengedit identitas: {str(e)}')
+
+            elif action == 'hapus_identitas':
+                try:
+                    # Keamanan 3: DELETE harus menyertakan email_member
+                    cursor.execute("DELETE FROM IDENTITAS WHERE nomor=%s AND email_member=%s", [
+                        request.POST.get('nomor_dokumen_hapus'),
+                        email_user
+                    ])
+                    messages.success(request, 'Identitas berhasil dihapus!')
+                except Exception as e:
+                    messages.error(request, f'Gagal menghapus identitas: {str(e)}')
+
+            return redirect('identitas_saya')
+
+        # --- READ: Ambil Data Identitas khusus milik Member yang sedang login ---
+        cursor.execute("""
+            SELECT nomor, jenis, negara_penerbit, tanggal_terbit, tanggal_habis
+            FROM IDENTITAS
+            WHERE email_member = %s
+            ORDER BY tanggal_habis DESC
+        """, [email_user])
+        
+        columns = [col[0] for col in cursor.description]
+        identitas_list = []
+        hari_ini = datetime.today().date()
+        
+        for row in cursor.fetchall():
+            identitas_dict = dict(zip(columns, row))
+            
+            # Ubah nama key agar cocok dengan variabel di file HTML
+            identitas_dict['nomor_dokumen'] = identitas_dict.pop('nomor')
+            identitas_dict['jenis_dokumen'] = identitas_dict.pop('jenis')
+            
+            # Logika Cek Status Kedaluwarsa
+            tgl_habis = identitas_dict['tanggal_habis']
+            if tgl_habis and tgl_habis < hari_ini:
+                identitas_dict['status'] = 'Kedaluwarsa'
+            else:
+                identitas_dict['status'] = 'Aktif'
+                
+            identitas_list.append(identitas_dict)
+
+    return render(request, 'member/identitas_saya.html', {
+        'identitas_list': identitas_list
+    })
+
 @role_required('staf')
 def kelola_mitra(request):
     with connection.cursor() as cursor:

@@ -194,16 +194,14 @@ def dashboard_staf(request):
         """, [email_user])
         informasi = dict(zip([col[0] for col in cursor.description], cursor.fetchone()))
 
-        params = [email_user] * 3
         cursor.execute("""
             SELECT 
-                COUNT(*) FILTER (WHERE status_penerimaan = 'Menunggu' AND email_staf = %s) AS total_menunggu,
+                COUNT(*) FILTER (WHERE status_penerimaan = 'Menunggu') AS total_menunggu,
                 COUNT(*) FILTER (WHERE status_penerimaan = 'Disetujui' AND email_staf = %s) AS total_disetujui,
                 COUNT(*) FILTER (WHERE status_penerimaan = 'Ditolak' AND email_staf = %s) AS total_ditolak
             FROM CLAIM_MISSING_MILES;
-        """, params)
+        """, [email_user, email_user])
         klaim = dict(zip([col[0] for col in cursor.description], cursor.fetchone()))
-        print(klaim)
 
     context = {
         'informasi': informasi,

@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- TOAST CONTAINER NOTIFIKASI -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055; margin-top: 60px;">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast align-items-center text-white {% if message.tags == 'error' %}bg-danger{% else %}bg-success{% endif %} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000"> 
+                 <div class="d-flex">
+                    <div class="toast-body fw-medium" style="font-size: 0.95rem;">
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<div class="container-fluid px-4 my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0" style="color: #001a38;">Kelola Member</h4>
+        <button class="btn btn-aeromiles-primary px-4 py-2 rounded-3" style="background-color: #041E42; color: white; border: none; font-size: 0.9rem;" data-bs-toggle="modal" data-bs-target="#modalTambahMember">
+            <i class="bi bi-plus-lg me-2"></i> Tambah Member
+        </button>
+    </div>
+
+    <!-- Area Filter & Pencarian -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-9">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <!-- Ditambahkan ID searchInput -->
+                <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Cari nama, email, atau nomor member...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <!-- Ditambahkan ID tierFilter -->
+            <select id="tierFilter" class="form-select">
+                <option value="">Semua Tier</option>
+                {% for tier in tier_list %}
+                <option value="{{ tier.nama }}">{{ tier.nama }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Tabel Daftar Member -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #f8f9fa;">
+                        <tr>
+                            <th class="px-4 py-3 text-muted" style="font-weight: 600; font-size: 0.85rem;">No. Member</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem;">Nama</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem;">Email</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem;">Tier</th>
+                            <th class="py-3 text-muted text-end" style="font-weight: 600; font-size: 0.85rem;">Total Miles</th>
+                            <th class="py-3 text-muted text-end" style="font-weight: 600; font-size: 0.85rem;">Award Miles</th>
+                            <th class="py-3 text-muted text-center" style="font-weight: 600; font-size: 0.85rem;">Bergabung</th>
+                            <th class="px-4 py-3 text-muted text-center" style="font-weight: 600; font-size: 0.85rem;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <!-- Ditambahkan ID memberTableBody -->
+                    <tbody id="memberTableBody">
+                        {% for member in members %}
+                        <tr>
+                            <td class="px-4 fw-bold" style="font-size: 0.9rem;">{{ member.nomor_member }}</td>
+                            <td style="font-size: 0.9rem;">{{ member.nama_lengkap }}</td>
+                            <td style="font-size: 0.9rem;">{{ member.email }}</td>
+                            <td>
+                                <span class="badge rounded-pill 
+                                    {% if member.nama_tier == 'Gold' %}bg-warning text-dark
+                                    {% elif member.nama_tier == 'Silver' %}bg-secondary
+                                    {% else %}bg-primary{% endif %}" style="font-weight: 500;">
+                                    {{ member.nama_tier }}
+                                </span>
+                            </td>
+                            <td class="text-end" style="font-size: 0.9rem;">{{ member.total_miles|default:0 }}</td>
+                            <td class="text-end" style="font-size: 0.9rem;">{{ member.award_miles|default:0 }}</td>
+                            <td class="text-center" style="font-size: 0.9rem;">{{ member.tanggal_bergabung|date:"Y-m-d" }}</td>
+                            <td class="px-4 text-center">
+                                <button class="btn btn-sm text-secondary me-1" title="Edit" data-bs-toggle="modal" data-bs-target="#modalEdit{{ member.nomor_member }}">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </button>
+                                <button class="btn btn-sm text-danger" title="Hapus" data-bs-toggle="modal" data-bs-target="#modalHapus{{ member.nomor_member }}">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">Belum ada data member.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL TAMBAH MEMBER ================= -->
+<div class="modal fade" id="modalTambahMember" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <form method="POST" class="modal-content border-0 shadow rounded-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="tambah_member">
+            <div class="modal-header border-0 pb-0 mt-2 px-4">
+                <h5 class="modal-title fw-bold" style="color: #001a38;">Tambah Member Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pt-3 pb-2">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Salutation</label>
+                        <select name="salutation" class="form-select">
+                            <option value="Mr.">Mr.</option>
+                            <option value="Mrs.">Mrs.</option>
+                            <option value="Ms.">Ms.</option>
+                            <option value="Dr.">Dr.</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-none d-md-block"></div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nama Depan</label>
+                        <input type="text" name="first_name" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nama Tengah</label>
+                        <input type="text" name="mid_name" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nama Belakang</label>
+                        <input type="text" name="last_name" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Kewarganegaraan</label>
+                        <input type="text" name="kewarganegaraan" class="form-control" value="Indonesia" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Country Code</label>
+                        <input type="text" name="country_code" class="form-control" value="+62" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nomor HP</label>
+                        <input type="text" name="mobile_number" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Tanggal Lahir</label>
+                        <input type="date" name="tanggal_lahir" class="form-control" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4">
+                <button type="submit" class="btn btn-primary px-4 rounded-3" style="background-color: #041E42; border: none;">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================= KUMPULAN MODAL EDIT & HAPUS MEMBER ================= -->
+{% for member in members %}
+<div class="modal fade" id="modalEdit{{ member.nomor_member }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <form method="POST" class="modal-content border-0 shadow rounded-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_member">
+            <input type="hidden" name="email_edit" value="{{ member.email }}">
+            
+            <div class="modal-header border-0 pb-0 mt-2 px-4">
+                <h5 class="modal-title fw-bold" style="color: #001a38;">Edit Member</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pt-3 pb-2">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Salutation</label>
+                        <select name="salutation_edit" class="form-select">
+                            <option value="Mr." {% if member.salutation == 'Mr.' %}selected{% endif %}>Mr.</option>
+                            <option value="Mrs." {% if member.salutation == 'Mrs.' %}selected{% endif %}>Mrs.</option>
+                            <option value="Ms." {% if member.salutation == 'Ms.' %}selected{% endif %}>Ms.</option>
+                            <option value="Dr." {% if member.salutation == 'Dr.' %}selected{% endif %}>Dr.</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-none d-md-block"></div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nama Depan</label>
+                        <input type="text" name="first_name_edit" class="form-control" value="{{ member.nama_depan_saja }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nama Tengah</label>
+                        <input type="text" name="mid_name_edit" class="form-control" value="{{ member.nama_tengah_saja }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nama Belakang</label>
+                        <input type="text" name="last_name_edit" class="form-control" value="{{ member.last_name }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Kewarganegaraan</label>
+                        <input type="text" name="kewarganegaraan_edit" class="form-control" value="{{ member.kewarganegaraan }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Country Code</label>
+                        <input type="text" name="country_code_edit" class="form-control" value="{{ member.country_code }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nomor HP</label>
+                        <input type="text" name="mobile_number_edit" class="form-control" value="{{ member.mobile_number }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Tanggal Lahir</label>
+                        <input type="date" name="tanggal_lahir_edit" class="form-control" value="{{ member.tanggal_lahir|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Tier</label>
+                        <select name="tier_edit" class="form-select">
+                            {% for tier in tier_list %}
+                            <option value="{{ tier.id_tier }}" {% if member.id_tier == tier.id_tier %}selected{% endif %}>{{ tier.nama }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4">
+                <button type="submit" class="btn btn-primary px-4 rounded-3" style="background-color: #041E42; border: none;">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalHapus{{ member.nomor_member }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content border-0 shadow rounded-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="hapus_member">
+            <input type="hidden" name="email_hapus" value="{{ member.email }}">
+            <div class="modal-header border-0 pb-0 mt-2 px-4">
+                <h5 class="modal-title fw-bold" style="color: #001a38;">Hapus Member?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 py-3 text-muted" style="font-size: 0.95rem;">
+                Semua data terkait (Identitas, Klaim, Transfer, Redeem) atas nama <strong>{{ member.nama_lengkap }}</strong> akan ikut terhapus. Tindakan ini tidak dapat dibatalkan.
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4">
+                <button type="button" class="btn btn-light border rounded-3 px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary rounded-3 px-4" style="background-color: #041E42; border: none;">Hapus</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+<!-- SCRIPT UNTUK SEARCH & FILTER TIER -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const tierFilter = document.getElementById('tierFilter');
+    const tableRows = document.querySelectorAll('#memberTableBody tr');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filterValue = tierFilter.value.toLowerCase();
+
+        tableRows.forEach(row => {
+            if (row.cells.length <= 1) return; // Lewati baris "Belum ada data"
+
+            const noMember = row.cells[0].textContent.toLowerCase();
+            const nama = row.cells[1].textContent.toLowerCase();
+            const email = row.cells[2].textContent.toLowerCase();
+            const tier = row.cells[3].textContent.toLowerCase().trim();
+
+            const matchesSearch = noMember.includes(searchTerm) || nama.includes(searchTerm) || email.includes(searchTerm);
+            const matchesTier = filterValue === "" || tier === filterValue;
+
+            row.style.display = (matchesSearch && matchesTier) ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('keyup', filterTable);
+    tierFilter.addEventListener('change', filterTable);
+});
+</script>
+
+{% endblock %}

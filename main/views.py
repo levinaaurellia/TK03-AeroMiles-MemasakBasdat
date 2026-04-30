@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from datetime import date
 from datetime import datetime
-from .decorators import role_required
+from .decorators import role_required 
 
 def login(request):
     # Jika sudah login, cegah akses halaman login
@@ -293,6 +293,126 @@ def pengaturan_profil(request):
         maskapai_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
 
     return render(request, 'profil.html', {'user': user_data, 'role': role_user, 'maskapai_list': maskapai_list})
+def kelola_member(request):
+    email_user = request.session.get('email')
+    role_user = request.session.get('role')
+
+    if not email_user or role_user != 'staf':
+        return redirect('login') 
+
+    with connection.cursor() as cursor:
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            
+            if action == 'tambah_member':
+                try:
+                    # 1. Hash Password
+                    pw_raw = request.POST.get('password')
+                    hashed_pw = bcrypt.hashpw(pw_raw.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                    
+                    # 2. Gabung Nama
+                    nama_depan = request.POST.get('first_name', '').strip()
+                    nama_tengah = request.POST.get('mid_name', '').strip()
+                    first_mid_name = f"{nama_depan} {nama_tengah}".strip()
+                    
+                    # 3. Insert ke PENGGUNA
+                    cursor.execute("""
+                        INSERT INTO PENGGUNA (email, password, salutation, first_mid_name, last_name, 
+                        country_code, mobile_number, tanggal_lahir, kewarganegaraan) 
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """, [
+                        request.POST.get('email'), hashed_pw, request.POST.get('salutation'), 
+                        first_mid_name, request.POST.get('last_name'), request.POST.get('country_code'), 
+                        request.POST.get('mobile_number'), request.POST.get('tanggal_lahir'), 
+                        request.POST.get('kewarganegaraan')
+                    ])
+                    
+                    # 4. Insert ke MEMBER (Nomor member otomatis di-generate oleh database)
+                    tanggal_hari_ini = datetime.today().strftime('%Y-%m-%d')
+                    
+                    cursor.execute("SELECT id_tier FROM TIER ORDER BY id_tier ASC LIMIT 1")
+                    id_tier_awal = cursor.fetchone()[0]
+                    
+                    cursor.execute("""
+                        INSERT INTO MEMBER (tanggal_bergabung, total_miles, award_miles, id_tier, email) 
+                        VALUES (%s, 0, 0, %s, %s)
+                    """, [tanggal_hari_ini, id_tier_awal, request.POST.get('email')])
+                    
+                    messages.success(request, 'Member baru berhasil ditambahkan!')
+                except Exception as e:
+                    # Menampilkan error aslinya supaya kita tahu kalau ada salah
+                    messages.error(request, f'Gagal menambahkan member: {str(e)}')
+
+            elif action == 'edit_member':
+                email_edit = request.POST.get('email_edit')
+                
+                nama_depan = request.POST.get('first_name_edit', '').strip()
+                nama_tengah = request.POST.get('mid_name_edit', '').strip()
+                first_mid_name = f"{nama_depan} {nama_tengah}".strip()
+                
+                cursor.execute("""
+                    UPDATE PENGGUNA SET salutation=%s, first_mid_name=%s, last_name=%s, 
+                    country_code=%s, mobile_number=%s, kewarganegaraan=%s, tanggal_lahir=%s
+                    WHERE email=%s
+                """, [
+                    request.POST.get('salutation_edit'), first_mid_name, request.POST.get('last_name_edit'), 
+                    request.POST.get('country_code_edit'), request.POST.get('mobile_number_edit'), 
+                    request.POST.get('kewarganegaraan_edit'), request.POST.get('tanggal_lahir_edit'), email_edit
+                ])
+                
+                # Update MEMBER (menggunakan id_tier_edit dari <select>)
+                cursor.execute("UPDATE MEMBER SET id_tier=%s WHERE email=%s", 
+                               [request.POST.get('tier_edit'), email_edit])
+                
+                messages.success(request, 'Data member berhasil diperbarui!')
+
+            elif action == 'hapus_member':
+                email_hapus = request.POST.get('email_hapus')
+                try:
+                    # 1. Hapus data dari tabel MEMBER dulu (Anak)
+                    cursor.execute("DELETE FROM MEMBER WHERE email=%s", [email_hapus])
+                    
+                    # 2. Baru hapus data dari tabel PENGGUNA (Ibu)
+                    cursor.execute("DELETE FROM PENGGUNA WHERE email=%s", [email_hapus])
+                    
+                    messages.success(request, 'Member berhasil dihapus!')
+                except Exception as e:
+                    # Biar aman kalau misal masih nyangkut di tabel lain (Klaim, Transfer, dll)
+                    messages.error(request, f'Gagal menghapus member: {str(e)}')
+                
+            return redirect('kelola_member')
+
+        # --- READ: Ambil Data Member & Join ke TIER ---
+        query_member = """
+            SELECT m.nomor_member, p.salutation, p.first_mid_name, p.last_name, p.email, 
+                   t.nama AS nama_tier, m.id_tier, m.total_miles, m.award_miles, m.tanggal_bergabung,
+                   p.country_code, p.mobile_number, p.tanggal_lahir, p.kewarganegaraan
+            FROM MEMBER m
+            JOIN PENGGUNA p ON m.email = p.email
+            JOIN TIER t ON m.id_tier = t.id_tier
+            ORDER BY m.nomor_member ASC
+        """
+        cursor.execute(query_member)
+        
+        columns = [col[0] for col in cursor.description]
+        members_data = []
+        for row in cursor.fetchall():
+            member_dict = dict(zip(columns, row))
+            member_dict['nama_lengkap'] = f"{member_dict['salutation']} {member_dict['first_mid_name']} {member_dict['last_name']}"
+            
+            nama_split = member_dict['first_mid_name'].split(' ', 1)
+            member_dict['nama_depan_saja'] = nama_split[0] if nama_split else ''
+            member_dict['nama_tengah_saja'] = nama_split[1] if len(nama_split) > 1 else ''
+            
+            members_data.append(member_dict)
+            
+        cursor.execute("SELECT id_tier, nama FROM TIER ORDER BY id_tier ASC")
+        tier_list = [{'id_tier': row[0], 'nama': row[1]} for row in cursor.fetchall()]
+
+    return render(request, 'staf/kelola_member.html', {
+        'members': members_data, 
+        'tier_list': tier_list
+    })
 
 @role_required('staf')
 def kelola_mitra(request):

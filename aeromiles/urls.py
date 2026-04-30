@@ -29,6 +29,7 @@ urlpatterns = [
     path('profil/', views.pengaturan_profil, name='pengaturan_profil'),
 
     # member
+    path('kelola-member/', views.kelola_member, name='kelola_member'),
     path('member/dashboard/', views.dashboard_member, name='dashboard_member'),
     path('member/klaim-miles/', views.klaim_miles, name='klaim_miles'),
     path('member/transfer-miles/', views.transfer_miles, name='transfer_miles'),

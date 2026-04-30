@@ -46,7 +46,7 @@
                 <!-- ===== STAF ===== -->
                 {% if request.session.email and request.session.role == 'staf' %}
                     <a class="nav-link active" href="{% url 'dashboard_staf' %}">Dashboard</a>
-                    <a class="nav-link" href="#">Kelola Member</a>
+                    <a class="nav-link" href="{% url 'kelola_member' %}">Kelola Member</a>
                     <a class="nav-link" href="{% url 'kelola_klaim' %}">Kelola Klaim</a>
                     <a class="nav-link" href="{% url 'kelola_hadiah' %}">Kelola Hadiah & Penyedia</a>
                     <a class="nav-link" href="{% url 'kelola_mitra' %}">Kelola Mitra</a>

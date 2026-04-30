@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Laporan & Riwayat Transaksi</h2>
+
+    <!-- SUMMARY -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card p-3">
+                <small>Total Miles Beredar</small>
+                <h4>{{ total_miles }}</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <small>Total Redeem Bulan Ini</small>
+                <h4>{{ total_redeem }}</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <small>Total Klaim Disetujui</small>
+                <h4>{{ total_klaim }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB -->
+    <div class="mb-3">
+        <a href="?tab=riwayat" 
+           class="btn {% if tab == 'riwayat' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+            Riwayat Transaksi
+        </a>
+
+        <a href="?tab=top" 
+           class="btn {% if tab == 'top' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+            Top Member
+        </a>
+    </div>
+
+    <!-- FILTER -->
+    {% if tab == 'riwayat' %}
+    <form method="get" class="mb-3 d-flex gap-2">
+        <input type="hidden" name="tab" value="riwayat">
+
+        <select name="tipe" class="form-select w-auto">
+            <option value="">Semua Tipe</option>
+            <option value="transfer" {% if selected_tipe == 'transfer' %}selected{% endif %}>Transfer</option>
+            <option value="redeem" {% if selected_tipe == 'redeem' %}selected{% endif %}>Redeem</option>
+            <option value="claim" {% if selected_tipe == 'claim' %}selected{% endif %}>Claim</option>
+            <option value="package" {% if selected_tipe == 'package' %}selected{% endif %}>Package</option>
+        </select>
+
+        <button class="btn btn-primary">Filter</button>
+    </form>
+    {% endif %}
+
+    <!-- RIWAYAT -->
+    {% if tab == 'riwayat' %}
+    <div class="card p-3">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Tipe</th>
+                    <th>Member</th>
+                    <th>Miles</th>
+                    <th>Waktu</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transaksi %}
+                <tr>
+                    <td>{{ t.tipe }}</td>
+                    <td>{{ t.email }}</td>
+                    <td>
+                        <span style="color: {% if t.miles > 0 %}green{% else %}red{% endif %}">
+                            {{ t.miles }}
+                        </span>
+                    </td>
+                    <td>{{ t.waktu }}</td>
+                    <td>
+                        <button 
+                            class="btn btn-danger btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal"
+                            onclick="setDeleteData('{{ t.email }}','{{ t.waktu }}','{{ t.tipe }}')"
+                        >
+                            🗑
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">Tidak ada data</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% elif tab == 'top' %}
+    <div class="card p-3">
+        <h5>Top Member</h5>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Email</th>
+                    <th>Total Transaksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in top_member %}
+                <tr>
+                    <td>{{ t.rank }}</td>
+                    <td>{{ t.email }}</td>
+                    <td>{{ t.total_transaksi }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center">Tidak ada data</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+</div>
+
+
+<!-- ================= MODAL DELETE ================= -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-body text-center">
+        <h5 class="mb-2">Hapus Riwayat?</h5>
+        <p class="text-muted">
+          Penghapusan riwayat transaksi bersifat permanen dan tidak dapat dibatalkan.
+        </p>
+
+        <form method="POST" action="{% url 'hapus_transaksi' %}">
+          {% csrf_token %}
+          <input type="hidden" name="email" id="deleteEmail">
+          <input type="hidden" name="timestamp" id="deleteTime">
+          <input type="hidden" name="tipe" id="deleteType">
+
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Batal
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Hapus
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ================= JS ================= -->
+<script>
+function setDeleteData(email, waktu, tipe) {
+    document.getElementById('deleteEmail').value = email;
+    document.getElementById('deleteTime').value = waktu;
+    document.getElementById('deleteType').value = tipe;
+}
+</script>
+
+{% endblock %}

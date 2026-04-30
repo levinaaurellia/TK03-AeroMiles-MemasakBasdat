@@ -38,6 +38,7 @@ urlpatterns = [
     path('member/tier/', views.tier_view, name='tier'),
     path('member/redeem/proses/', views.proses_redeem, name='proses_redeem'),
     path('member/package/beli/', views.beli_package, name='beli_package'),
+    path('hapus-transaksi/', views.hapus_transaksi, name='hapus_transaksi'),
 
     # staf
     path('staf/dashboard/', views.dashboard_staf, name='dashboard_staf'),

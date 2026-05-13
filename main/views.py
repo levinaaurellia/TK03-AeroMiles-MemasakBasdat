@@ -934,57 +934,52 @@ def transfer_miles(request):
                 jumlah_miles = int(request.POST.get('jumlah_miles'))
                 catatan = request.POST.get('catatan') or None
 
-                try:
+                if action == 'create':
 
-                    # validasi email penerima ada
-                    cursor.execute("""
-                        SELECT email
-                        FROM MEMBER
-                        WHERE email = %s
-                    """, [email_penerima])
+                    email_penerima = request.POST.get('email_penerima')
+                    jumlah_miles = int(request.POST.get('jumlah_miles'))
+                    catatan = request.POST.get('catatan') or None
 
-                    penerima = cursor.fetchone()
+                    try:
+                        # Tetap pertahankan validasi apakah email penerima itu ada di database
+                        cursor.execute("""
+                            SELECT email
+                            FROM MEMBER
+                            WHERE email = %s
+                        """, [email_penerima])
 
-                    if not penerima:
-                        messages.error(
-                            request,
-                            'Email penerima tidak ditemukan.'
-                        )
+                        penerima = cursor.fetchone()
+
+                        if not penerima:
+                            messages.error(request, 'Email penerima tidak ditemukan.')
+                            return redirect('transfer_miles')
+                        
+                        # Kalau sudah valid, langsung eksekusi INSERT ke tabel TRANSFER.
+                        # Validasi saldo akan dilakukan di trigger DB trg_cek_saldo_transfer
+                        # update saldo pengirim & penerima akan dilakukan di trigger DB trg_proses_transfer_miles
+                        cursor.execute("""
+                            INSERT INTO TRANSFER (
+                                email_member_1,
+                                email_member_2,
+                                timestamp,
+                                jumlah,
+                                catatan
+                            )
+                            VALUES (%s, %s, NOW(), %s, %s)
+                        """, [
+                            email_user,
+                            email_penerima,
+                            jumlah_miles,
+                            catatan
+                        ])
+
+                        messages.success(request, 'Transfer miles berhasil dilakukan!')
                         return redirect('transfer_miles')
 
-                    cursor.execute("""
-                        INSERT INTO TRANSFER (
-                            email_member_1,
-                            email_member_2,
-                            timestamp,
-                            jumlah,
-                            catatan
-                        )
-                        VALUES (%s, %s, NOW(), %s, %s)
-                    """, [
-                        email_user,
-                        email_penerima,
-                        jumlah_miles,
-                        catatan
-                    ])
-
-                    messages.success(
-                        request,
-                        'Transfer miles berhasil dilakukan!'
-                    )
-
-                    return redirect('transfer_miles')
-
-                except Exception as e:
-
-                    error_message = str(e).split("CONTEXT")[0]
-
-                    messages.error(
-                        request,
-                        error_message
-                    )
-
-                    return redirect('transfer_miles')
+                    except Exception as e:
+                        error_message = str(e).split("CONTEXT")[0]
+                        messages.error(request, error_message)
+                        return redirect('transfer_miles')
                 
         cursor.execute("""
             (SELECT 
@@ -1058,7 +1053,7 @@ def redeem_view(request):
         """)
         katalog = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
 
-        # ✅ riwayat redeem
+        # riwayat redeem
         cursor.execute("""
             SELECT h.nama, r.timestamp, h.miles
             FROM REDEEM r
@@ -1080,33 +1075,17 @@ def proses_redeem(request):
         kode_hadiah = request.POST.get('kode_hadiah')
 
         with connection.cursor() as cursor:
-
-            # ambil miles hadiah
-            cursor.execute("""
-                SELECT miles FROM HADIAH WHERE kode_hadiah = %s
-            """, [kode_hadiah])
-            miles = cursor.fetchone()[0]
-
-            # ambil miles user
-            cursor.execute("""
-                SELECT award_miles FROM MEMBER WHERE email = %s
-            """, [email])
-            user_miles = cursor.fetchone()[0]
-
-            if user_miles >= miles:
-
-                # insert redeem
+            try:
+                # hanya insert ke tabel REDEEM, update award miles akan otomatis karena trigger DB
                 cursor.execute("""
                     INSERT INTO REDEEM (email_member, kode_hadiah, timestamp)
                     VALUES (%s, %s, NOW())
                 """, [email, kode_hadiah])
-
-                # update miles
-                cursor.execute("""
-                    UPDATE MEMBER
-                    SET award_miles = award_miles - %s
-                    WHERE email = %s
-                """, [miles, email])
+                
+                messages.success(request, 'Redeem hadiah berhasil!')
+            except Exception as e:
+                error_message = str(e).split("CONTEXT")[0]
+                messages.error(request, error_message)
 
         return redirect('redeem')
     
@@ -1141,25 +1120,18 @@ def beli_package(request):
         id_package = request.POST.get('id_package')
 
         with connection.cursor() as cursor:
+            try:
+                # hanya dilakukan insert, update award miles akan otomatis karena trigger DB
+                cursor.execute("""
+                    INSERT INTO MEMBER_AWARD_MILES_PACKAGE 
+                    (email_member, id_award_miles_package, timestamp)
+                    VALUES (%s, %s, NOW())
+                """, [email, id_package])
 
-            cursor.execute("""
-                SELECT jumlah_award_miles, harga_paket 
-                FROM AWARD_MILES_PACKAGE 
-                WHERE id = %s
-            """, [id_package])
-            miles, harga = cursor.fetchone()
-
-            cursor.execute("""
-                INSERT INTO MEMBER_AWARD_MILES_PACKAGE 
-                (email_member, id_package, timestamp)
-                VALUES (%s, %s, NOW())
-            """, [email, id_package])
-
-            cursor.execute("""
-                UPDATE MEMBER
-                SET award_miles = award_miles + %s
-                WHERE email = %s
-            """, [miles, email])
+                messages.success(request, 'Pembelian package berhasil!')
+            except Exception as e:
+                error_message = str(e).split("CONTEXT")[0]
+                messages.error(request, error_message)
 
         return redirect('package')
 

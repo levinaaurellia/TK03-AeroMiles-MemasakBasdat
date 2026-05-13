@@ -8,54 +8,82 @@ from datetime import datetime
 from .decorators import role_required 
 
 def login(request):
-    # Jika sudah login, cegah akses halaman login
+
+    # Jika sudah login
     if request.session.get('email'):
+
         if request.session.get('role') == 'staf':
-             return redirect('dashboard_staf')
+            return redirect('dashboard_staf')
+
         return redirect('dashboard_member')
-    
+
     if request.method == 'POST':
+
         email = request.POST.get('email')
         password = request.POST.get('password')
-        
+
         with connection.cursor() as cursor:
-            # Cari data pengguna berdasarkan email
-            cursor.execute("SELECT email, password FROM PENGGUNA WHERE email = %s", [email])
-            user = cursor.fetchone()
 
-            input_bytes = password.encode('utf-8')
-            db_bytes = user[1].encode('utf-8') if user else None
+            cursor.execute("""
+                SELECT verifikasi_login(%s, %s)
+            """, [email, password])
 
-            # Cocokkan password
-            if user and bcrypt.checkpw(input_bytes, db_bytes):
-                
-                # Cek apakah user adalah staf
-                cursor.execute("SELECT email FROM STAF WHERE email = %s", [email])
-                if cursor.fetchone():
-                    request.session['email'] = email
-                    request.session['role'] = 'staf'
-                    return redirect('dashboard_staf')
-                
-                # Cek apakah user adalah member
-                cursor.execute("SELECT email FROM MEMBER WHERE email = %s", [email])
-                if cursor.fetchone():
-                    request.session['email'] = email
-                    request.session['role'] = 'member'
-                    return redirect('dashboard_member')
-                
-            else:
-                messages.error(request, 'Email atau password salah.')
-                
+            result = cursor.fetchone()[0]
+
+            if result != 'LOGIN BERHASIL':
+
+                messages.error(
+                    request,
+                    result
+                )
+
+                return render(
+                    request,
+                    'guest/login.html'
+                )
+
+            # cek role staf
+            cursor.execute("""
+                SELECT email
+                FROM STAF
+                WHERE LOWER(email) = LOWER(%s)
+            """, [email])
+
+            if cursor.fetchone():
+
+                request.session['email'] = email
+                request.session['role'] = 'staf'
+
+                return redirect('dashboard_staf')
+
+            # cek role member
+            cursor.execute("""
+                SELECT email
+                FROM MEMBER
+                WHERE LOWER(email) = LOWER(%s)
+            """, [email])
+
+            if cursor.fetchone():
+
+                request.session['email'] = email
+                request.session['role'] = 'member'
+
+                return redirect('dashboard_member')
+
     return render(request, 'guest/login.html')
 
 def register(request):
+
     # Jika sudah login, cegah akses halaman register
     if request.session.get('email'):
+
         if request.session.get('role') == 'staf':
-             return redirect('dashboard_staf')
+            return redirect('dashboard_staf')
+
         return redirect('dashboard_member')
-    
+
     if request.method == 'POST':
+
         role = request.POST.get('role')
         email = request.POST.get('email')
         password = request.POST.get('password')
@@ -67,63 +95,137 @@ def register(request):
         country_code = request.POST.get('country_code')
         mobile_number = request.POST.get('mobile_number')
         tanggal_lahir = request.POST.get('tanggal_lahir')
-        
+
         if password != confirm_password:
+
             messages.error(request, 'Password dan konfirmasi password tidak cocok.')
+
             return redirect('register')
-            
-        # implementasi hashing password
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        
+
+        # hashing password
+        hashed_password = bcrypt.hashpw(
+            password.encode('utf-8'),
+            bcrypt.gensalt()
+        ).decode('utf-8')
+
+        # PostgreSQL crypt() lebih kompatibel dengan $2a$
+        hashed_password = hashed_password.replace('$2b$', '$2a$')
+
         with connection.cursor() as cursor:
-            # Validasi duplikasi email
-            cursor.execute("SELECT email FROM PENGGUNA WHERE email = %s", [email])
-            if cursor.fetchone():
-                messages.error(request, 'Email sudah terdaftar.')
-                return redirect('register')
-            
+
             try:
+
                 # Insert ke tabel PENGGUNA
+                # trigger PostgreSQL akan cek duplicate email
                 cursor.execute("""
-                    INSERT INTO PENGGUNA (email, password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan)
+                    INSERT INTO PENGGUNA (
+                        email,
+                        password,
+                        salutation,
+                        first_mid_name,
+                        last_name,
+                        country_code,
+                        mobile_number,
+                        tanggal_lahir,
+                        kewarganegaraan
+                    )
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, [email, hashed_password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan])
-                
-                # Insert ke tabel spesifik berdasarkan Role
+                """, [
+                    email,
+                    hashed_password,
+                    salutation,
+                    first_mid_name,
+                    last_name,
+                    country_code,
+                    mobile_number,
+                    tanggal_lahir,
+                    kewarganegaraan
+                ])
+
                 if role == 'member':
-                    # Auto-generate Nomor Member format M[XXXX]
-                    cursor.execute("SELECT COUNT(*) FROM MEMBER")
+
+                    # Auto-generate nomor member
+                    cursor.execute("""
+                        SELECT COUNT(*)
+                        FROM MEMBER
+                    """)
+
                     count = cursor.fetchone()[0] + 1
+
                     nomor_member = f"M{count:04d}"
-                    
-                    # Ambil ID tier terendah
-                    cursor.execute("SELECT id_tier FROM TIER ORDER BY minimal_tier_miles ASC LIMIT 1")
+
+                    # Ambil tier terendah
+                    cursor.execute("""
+                        SELECT id_tier
+                        FROM TIER
+                        ORDER BY minimal_tier_miles ASC
+                        LIMIT 1
+                    """)
+
                     tier_row = cursor.fetchone()
+
                     id_tier = tier_row[0] if tier_row else None
-                    
+
                     cursor.execute("""
-                        INSERT INTO MEMBER (email, nomor_member, tanggal_bergabung, id_tier, award_miles, total_miles)
+                        INSERT INTO MEMBER (
+                            email,
+                            nomor_member,
+                            tanggal_bergabung,
+                            id_tier,
+                            award_miles,
+                            total_miles
+                        )
                         VALUES (%s, %s, %s, %s, 0, 0)
-                    """, [email, nomor_member, date.today(), id_tier])
-                    
+                    """, [
+                        email,
+                        nomor_member,
+                        date.today(),
+                        id_tier
+                    ])
+
                 elif role == 'staf':
+
                     kode_maskapai = request.POST.get('kode_maskapai')
-                    
-                    # Auto-generate ID Staf format S[XXXX]
-                    cursor.execute("SELECT COUNT(*) FROM STAF")
-                    count = cursor.fetchone()[0] + 1
-                    id_staf = f"S{count:04d}"
-                    
+
+                    # Auto-generate id staf
                     cursor.execute("""
-                        INSERT INTO STAF (email, id_staf, kode_maskapai)
+                        SELECT COUNT(*)
+                        FROM STAF
+                    """)
+
+                    count = cursor.fetchone()[0] + 1
+
+                    id_staf = f"S{count:04d}"
+
+                    cursor.execute("""
+                        INSERT INTO STAF (
+                            email,
+                            id_staf,
+                            kode_maskapai
+                        )
                         VALUES (%s, %s, %s)
-                    """, [email, id_staf, kode_maskapai])
-                    
-                messages.success(request, 'Registrasi berhasil! Silakan login.')
+                    """, [
+                        email,
+                        id_staf,
+                        kode_maskapai
+                    ])
+
+                messages.success(
+                    request,
+                    'Registrasi berhasil! Silakan login.'
+                )
+
                 return redirect('login')
-                
+
             except Exception as e:
-                messages.error(request, f'Terjadi kesalahan: {str(e)}')
+
+                error_message = str(e).split("CONTEXT")[0]
+
+                messages.error(
+                    request,
+                    error_message
+                )
+
                 return redirect('register')
 
     return render(request, 'guest/register.html')
@@ -811,79 +913,131 @@ def transfer_miles(request):
     email_user = request.session.get('email')
 
     with connection.cursor() as cursor:
-        cursor.execute("SELECT award_miles FROM MEMBER WHERE email = %s", [email_user])
+
+        # ambil award miles user
+        cursor.execute("""
+            SELECT award_miles
+            FROM MEMBER
+            WHERE email = %s
+        """, [email_user])
+
         award_miles = cursor.fetchone()[0]
 
+        # trigger
         if request.method == 'POST':
+
             action = request.POST.get('action')
-            
+
             if action == 'create':
+
                 email_penerima = request.POST.get('email_penerima')
-
-                if email_penerima == email_user:
-                    messages.error(request, 'Transfer kepada diri sendiri tidak diperbolehkan.')
-                    return redirect('transfer_miles')
-
-                cursor.execute("SELECT email, password FROM PENGGUNA WHERE email = %s", [email_penerima])
-                user = cursor.fetchone()
-
-                if not user:
-                    messages.error(request, 'Email penerima tidak ditemukan.')
-                    return redirect('transfer_miles')
-                
                 jumlah_miles = int(request.POST.get('jumlah_miles'))
                 catatan = request.POST.get('catatan') or None
 
-                if award_miles < jumlah_miles:
-                    messages.error(request, 'Award miles tidak cukup.')
+                try:
+
+                    # validasi email penerima ada
+                    cursor.execute("""
+                        SELECT email
+                        FROM MEMBER
+                        WHERE email = %s
+                    """, [email_penerima])
+
+                    penerima = cursor.fetchone()
+
+                    if not penerima:
+                        messages.error(
+                            request,
+                            'Email penerima tidak ditemukan.'
+                        )
+                        return redirect('transfer_miles')
+
+                    cursor.execute("""
+                        INSERT INTO TRANSFER (
+                            email_member_1,
+                            email_member_2,
+                            timestamp,
+                            jumlah,
+                            catatan
+                        )
+                        VALUES (%s, %s, NOW(), %s, %s)
+                    """, [
+                        email_user,
+                        email_penerima,
+                        jumlah_miles,
+                        catatan
+                    ])
+
+                    messages.success(
+                        request,
+                        'Transfer miles berhasil dilakukan!'
+                    )
+
+                    return redirect('transfer_miles')
+
+                except Exception as e:
+
+                    error_message = str(e).split("CONTEXT")[0]
+
+                    messages.error(
+                        request,
+                        error_message
+                    )
+
                     return redirect('transfer_miles')
                 
-                cursor.execute("""
-                    INSERT INTO TRANSFER VALUES (%s, %s, NOW(), %s, %s)
-                """, [email_user, email_penerima, jumlah_miles, catatan])
-
-                cursor.execute("""
-                    UPDATE MEMBER
-                    SET award_miles = award_miles - %s
-                    WHERE email = %s
-                """, [award_miles, email_user])
-
-                cursor.execute("""
-                    UPDATE MEMBER
-                    SET award_miles = award_miles + %s
-                    WHERE email = %s
-                """, [award_miles, email_penerima])
-
-                messages.success(request, 'Transfer miles berhasil dilakukan!')
-                return redirect('transfer_miles')
-
         cursor.execute("""
-            (SELECT t.timestamp, CONCAT(p.first_mid_name, ' ', p.last_name) AS nama_member, p.email, t.jumlah, t.catatan, 'Kirim' AS tipe
+            (SELECT 
+                t.timestamp,
+                CONCAT(p.first_mid_name, ' ', p.last_name) AS nama_member,
+                p.email,
+                t.jumlah,
+                t.catatan,
+                'Kirim' AS tipe
             FROM TRANSFER t
-            JOIN PENGGUNA p ON t.email_member_2 = p.email
+            JOIN PENGGUNA p 
+                ON t.email_member_2 = p.email
             WHERE t.email_member_1 = %s)
+
             UNION
-            (SELECT t.timestamp, CONCAT(p.first_mid_name, ' ', p.last_name) AS nama_member, p.email, t.jumlah, t.catatan, 'Terima' AS tipe
+
+            (SELECT 
+                t.timestamp,
+                CONCAT(p.first_mid_name, ' ', p.last_name) AS nama_member,
+                p.email,
+                t.jumlah,
+                t.catatan,
+                'Terima' AS tipe
             FROM TRANSFER t
-            JOIN PENGGUNA p ON t.email_member_1 = p.email
+            JOIN PENGGUNA p 
+                ON t.email_member_1 = p.email
             WHERE t.email_member_2 = %s)
-            ORDER BY timestamp
+
+            ORDER BY timestamp DESC
         """, [email_user, email_user])
-        transfer_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
-    
+
+        transfer_list = [
+            dict(zip([col[0] for col in cursor.description], row))
+            for row in cursor.fetchall()
+        ]
+
     context = {
         "award_miles": award_miles,
         "transfer_list": transfer_list
     }
 
-    return render(request, 'member/transfer_miles.html', context)
+    return render(
+        request,
+        'member/transfer_miles.html',
+        context
+    )
 
 def redeem_view(request):
     email = request.session.get('email')
 
     with connection.cursor() as cursor:
 
-        # ✅ ambil award miles user
+        # ambil award miles user
         cursor.execute("""
             SELECT award_miles 
             FROM MEMBER 
@@ -891,7 +1045,7 @@ def redeem_view(request):
         """, [email])
         award_miles = cursor.fetchone()[0]
 
-        # ✅ katalog hadiah (FIX JOIN SESUAI ERD)
+        # katalog hadiah (FIX JOIN SESUAI ERD)
         cursor.execute("""
             SELECT h.kode_hadiah, h.nama, h.miles, h.deskripsi,
                    h.valid_start_date, h.program_end,
@@ -1145,10 +1299,7 @@ def laporan_transaksi_view(request):
 
         ) AS transaksi
     """
-
-    # =========================
-    # FILTER TIPE (FIX ERROR)
-    # =========================
+    
     if tipe and tipe != 'semua':
         final_query = f"""
             SELECT * FROM (
@@ -1165,9 +1316,6 @@ def laporan_transaksi_view(request):
         """
         params = []
 
-    # =========================
-    # EXECUTE QUERY
-    # =========================
     with connection.cursor() as cursor:
         cursor.execute(final_query, params)
         rows = cursor.fetchall()
@@ -1182,9 +1330,6 @@ def laporan_transaksi_view(request):
         for r in rows
     ]
 
-    # =========================
-    # SUMMARY (FIX TOTAL MILES)
-    # =========================
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT COALESCE(SUM(miles),0)
@@ -1230,9 +1375,6 @@ def laporan_transaksi_view(request):
         """)
         total_klaim = cursor.fetchone()[0]
 
-    # =========================
-    # TOP MEMBER (FIXED)
-    # =========================
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT email, COUNT(*) AS total_transaksi

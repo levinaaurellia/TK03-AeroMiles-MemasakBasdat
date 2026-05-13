@@ -753,14 +753,24 @@ def klaim_miles(request):
                 nomor_tiket = request.POST.get('nomor_tiket')
                 pnr = request.POST.get('pnr')
 
-                # Generate ID klaim
-                cursor.execute("SELECT MAX(id) FROM CLAIM_MISSING_MILES")
-                id_klaim = int(cursor.fetchone()[0]) + 1
+                try:
+                    # Ambil id terakhir untuk auto-increment manual
+                    cursor.execute("SELECT MAX(id) FROM CLAIM_MISSING_MILES")
+                    max_id = cursor.fetchone()[0]
+                    id_klaim = int(max_id) + 1 if max_id else 1
 
-                cursor.execute("""
-                    INSERT INTO CLAIM_MISSING_MILES id, email_member, maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, status_penerimaan, timestamp
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-                """, [id_klaim, email_user, kode_maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, "Menunggu"])
+                    # Pastikan ada tanda kurung () mengapit nama kolom
+                    cursor.execute("""
+                        INSERT INTO CLAIM_MISSING_MILES (id, email_member, maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, status_penerimaan, timestamp)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                    """, [id_klaim, email_user, kode_maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, "Menunggu"])
+                    
+                    messages.success(request, 'Klaim berhasil diajukan!')
+                
+                # BAGIAN PENTING: Menangkap penolakan jika terjadi klaim ganda dari Trigger Biru
+                except Exception as e:
+                    error_message = str(e).split("CONTEXT")[0].replace("RAISE EXCEPTION: ", "").strip()
+                    messages.error(request, error_message)
 
             elif action == 'update':
                 kode_maskapai = request.POST.get('kode_maskapai')
@@ -872,20 +882,42 @@ def kelola_klaim(request):
             id_klaim = request.POST.get('id_klaim')
 
             if action == "setujui":
+                # 1. Update status klaim
                 cursor.execute("""
                     UPDATE CLAIM_MISSING_MILES
-                    SET status_penerimaan="Disetujui", email_staf=%s 
+                    SET status_penerimaan='Disetujui', email_staf=%s 
                     WHERE id = %s
                 """, [email_user, id_klaim])
+                
+                # 2. SIMULASI PENAMBAHAN MILES AGAR TRIGGER NAIK TIER TERPANCING
+                cursor.execute("SELECT email_member FROM CLAIM_MISSING_MILES WHERE id = %s", [id_klaim])
+                email_member_klaim = cursor.fetchone()[0]
+                
+                cursor.execute("""
+                    UPDATE MEMBER 
+                    SET total_miles = total_miles + 50000 
+                    WHERE email = %s
+                """, [email_member_klaim])
+                
+                # 3. Menangkap Notice ganti tier
+                notices = connection.connection.notices
+                if notices:
+                    for notice in notices:
+                        if 'SUKSES: Tier Member' in notice:
+                            pesan_sukses = notice.replace("NOTICE:  ", "").strip()
+                            messages.success(request, pesan_sukses)
+                else:
+                    messages.success(request, "Klaim berhasil disetujui.")
             
             elif action == "tolak":
                 cursor.execute("""
                     UPDATE CLAIM_MISSING_MILES
-                    SET status_penerimaan="Ditolak", email_staf=%s 
+                    SET status_penerimaan='Ditolak', email_staf=%s 
                     WHERE id = %s
                 """, [email_user, id_klaim])
+                messages.success(request, "Klaim ditolak.")
             
-            return redirect('klaim_miles')
+            return redirect('kelola_klaim')
             
         cursor.execute(query, params)
         claim_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]

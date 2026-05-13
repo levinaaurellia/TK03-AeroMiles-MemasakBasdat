@@ -257,6 +257,7 @@ def pengaturan_profil(request):
                 
                 if bcrypt.checkpw(pw_lama.encode('utf-8'), hashed_pw.encode('utf-8')):
                     new_hashed = bcrypt.hashpw(pw_baru.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                    new_hashed = new_hashed.replace('$2b$', '$2a$')
                     cursor.execute("UPDATE PENGGUNA SET password=%s WHERE email=%s", [new_hashed, email_user])
                     messages.success(request, 'Password berhasil diubah!')
                 else:
@@ -293,6 +294,7 @@ def pengaturan_profil(request):
         maskapai_list = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
 
     return render(request, 'profil.html', {'user': user_data, 'role': role_user, 'maskapai_list': maskapai_list})
+
 def kelola_member(request):
     email_user = request.session.get('email')
     role_user = request.session.get('role')
@@ -309,6 +311,7 @@ def kelola_member(request):
                     # 1. Hash Password
                     pw_raw = request.POST.get('password')
                     hashed_pw = bcrypt.hashpw(pw_raw.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                    hashed_pw = hashed_pw.replace('$2b$', '$2a$')
                     
                     # 2. Gabung Nama
                     nama_depan = request.POST.get('first_name', '').strip()

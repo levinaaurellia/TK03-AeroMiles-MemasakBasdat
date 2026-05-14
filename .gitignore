@@ -5,8 +5,7 @@ __pycache__/
 *.pyd
 
 # Virtual Environment
-env/
-venv/
+.env
 
 # Database Lokal
 db.sqlite3

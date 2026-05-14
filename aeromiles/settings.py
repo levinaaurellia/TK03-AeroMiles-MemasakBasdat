@@ -12,25 +12,24 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv # Tambahkan ini
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load file .env jika ada (ini akan diabaikan oleh Vercel secara otomatis)
+load_dotenv() 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # Ambil secret key dari environment, atau gunakan default untuk lokal
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-4=imyga6+$@&%mc$ipui@v+a*pvl3@*$@i@9f(1m3b6kro+2p4')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
-# Jika sedang di Render, matikan DEBUG
-DEBUG = 'RENDER' not in os.environ
+# Jika lingkungan adalah Vercel, matikan DEBUG
+DEBUG = 'VERCEL_ENV' not in os.environ
 
-ALLOWED_HOSTS = []
-
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -79,21 +78,25 @@ WSGI_APPLICATION = 'aeromiles.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# Ambil kredensial dari Environment Variables
+DB_NAME = os.environ.get('DB_NAME')
+DB_USER = os.environ.get('DB_USER')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+DB_HOST = os.environ.get('DB_HOST')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'neondb', # Sesuaikan dengan nama db di Neon
-        'USER': 'neondb_owner',
-        'PASSWORD': 'npg_ftIWzES2T9Bn',
-        'HOST': 'ep-hidden-water-a1bkija8.ap-southeast-1.aws.neon.tech',
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
         'PORT': '5432',
         'OPTIONS': {
-            'options': '-c search_path=aeromiles_mb', # Mengarahkan otomatis ke skema Anda
             'sslmode': 'require',
-        }
+        },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

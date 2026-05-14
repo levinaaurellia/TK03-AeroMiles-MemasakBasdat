@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055; margin-top: 60px;">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast align-items-center text-white {% if message.tags == 'error' %}bg-danger{% else %}bg-success{% endif %} border-0" 
+                role="alert" aria-live="assertive" aria-atomic="true" 
+                data-bs-delay="4000"> <div class="d-flex">
+                    <div class="toast-body fw-medium" style="font-size: 0.95rem;">
+                        {% if message.tags == 'error' %}
+                            <i class="bi bi-exclamation-circle me-2"></i>
+                        {% else %}
+                            <i class="bi bi-check-circle me-2"></i>
+                        {% endif %}
+                        
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: calc(100vh - 130px);">
+    <div class="text-center mb-4">
+        <div class="text-white rounded d-inline-flex justify-content-center align-items-center mb-2 fs-2" style="width: 65px; height: 65px; background: linear-gradient(90deg, #002244, #003366);">
+            ✈
+        </div>
+        <h3 class="fw-bold mb-1">Selamat Datang</h3>
+        <p class="text-muted small">Masuk ke akun AeroMiles Anda</p>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3" style="width: 100%; max-width: 400px;">
+        <div class="card-body p-4">
+            <h6 class="fw-bold mb-1">Login</h6>
+            <p class="text-muted mb-4" style="font-size: 0.85rem;">Masukkan email dan password Anda</p>
+
+            <form action="" method="POST">
+                {% csrf_token %} 
+
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-semibold" style="font-size: 0.85rem;">Email</label>
+                    <input type="email" class="form-control form-control-sm py-2" id="email" name="email" placeholder="email@example.com" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-semibold" style="font-size: 0.85rem;">Password</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control form-control-sm py-2 border-end-0" id="password" name="password" placeholder="********" required style="background-color: #f0f3f6;">
+                        
+                        <span class="input-group-text bg-transparent border-start-0 text-muted" id="togglePassword" style="cursor: pointer;">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-aeromiles-primary w-100 fw-bold py-2">
+                    Log in
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-4 text-center">
+        <p class="small text-muted">Belum punya akun? <a href="{% url 'register' %}" class="text-decoration-none text-aeromiles fw-semibold" style="font-size: 0.9rem;">Daftar di sini</a></p>
+    </div>
+
+</div>
+
+{% endblock %}

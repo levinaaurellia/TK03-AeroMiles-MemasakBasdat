@@ -1,0 +1,125 @@
+body { 
+    background-color: #f8f9fa;
+    min-height: 100dvh;
+    margin: 0;
+}
+
+.navbar { 
+    background-color: #003366; 
+}
+
+.navbar-brand {
+    color: white !important;
+    font-weight: bold;
+    margin-right: 20px;
+}
+
+.navbar-custom {
+    background: linear-gradient(90deg, #002244, #003366);
+    padding: 10px 0;
+}
+
+.nav-link {
+    color: #cfd8dc !important;
+    font-size: 14px;
+}
+
+.nav-link:hover {
+    color: #ffffff !important;
+}
+
+.nav-link.active {
+    color: #4fc3f7 !important;
+    font-weight: 600;
+}
+
+.dropdown-menu .dropdown-item {
+    font-size: 0.8rem;
+}
+
+.card { 
+    border: none; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+}
+
+.text-aeromiles {
+    color: #002b5e !important;
+}
+
+.border-aeromiles {
+    border: 1px solid #001a38;
+}
+
+.bg-aeromiles {
+    background-color: #003366;
+}
+
+.btn-aeromiles-primary {
+    background-color: #002b5e !important;
+    color: white !important;
+    font-size: 0.9rem;
+}
+
+.btn-aeromiles-primary:hover {
+    background-color: #001a38 !important;
+}
+
+.btn-aeromiles-secondary {
+    background-color: white !important;
+    color: #001a38 !important;
+    border: 1px solid #001a38;
+    font-size: 0.9rem;
+}
+
+.btn-aeromiles-secondary:hover {
+    background-color: #90a4ae !important;
+}
+
+.form-label { 
+    font-size: 0.85rem; 
+    font-weight: 600; 
+}
+
+.logout {
+    color: #ff5252 !important;
+}
+
+.user-info {
+    font-size: 12px;
+    color: #90a4ae;
+    padding: 0 12px 12px;
+}
+
+/* Untuk styling register */
+.custom-toggle-group {
+    display: flex;
+    background-color: #f0f3f6; 
+    border-radius: 50px;      
+    padding: 4px;            
+}
+
+
+.custom-toggle-group .toggle-label {
+    flex: 1;                  
+    text-align: center;
+    padding: 8px 16px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #5c6c7b;            
+    transition: all 0.3s ease; 
+    margin: 0;
+    font-size: 14px;
+}
+
+
+.custom-toggle-group input[type="radio"] {
+    display: none;
+}
+
+.custom-toggle-group input[type="radio"]:checked + .toggle-label {
+    background-color: #ffffff; 
+    color: #1e293b;            
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}

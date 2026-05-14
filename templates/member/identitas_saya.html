@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- TOAST CONTAINER NOTIFIKASI -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055; margin-top: 60px;">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast align-items-center text-white {% if message.tags == 'error' %}bg-danger{% else %}bg-success{% endif %} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000"> 
+                 <div class="d-flex">
+                    <div class="toast-body fw-medium" style="font-size: 0.95rem;">
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<div class="container-fluid px-4 my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0" style="color: #001a38;">Identitas Saya</h4>
+        <!-- Tombol Tambah Identitas -->
+        <button class="btn btn-aeromiles-primary px-4 py-2 rounded-3" style="background-color: #041E42; color: white; border: none; font-size: 0.9rem;" data-bs-toggle="modal" data-bs-target="#modalTambahIdentitas">
+            <i class="bi bi-plus-lg me-2"></i> Tambah Identitas
+        </button>
+    </div>
+
+    <!-- Tabel Daftar Identitas -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #f8f9fa;">
+                        <tr>
+                            <th class="px-4 py-3 text-muted" style="font-weight: 600; font-size: 0.85rem;">No. Dokumen</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem;">Jenis</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem;">Negara</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem;">Terbit</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem;">Habis</th>
+                            <th class="py-3 text-muted" style="font-weight: 600; font-size: 0.85rem;">Status</th>
+                            <th class="px-4 py-3 text-muted text-center" style="font-weight: 600; font-size: 0.85rem;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for identitas in identitas_list %}
+                        <tr>
+                            <td class="px-4 fw-bold" style="font-size: 0.9rem;">{{ identitas.nomor_dokumen }}</td>
+                            <td style="font-size: 0.9rem;">{{ identitas.jenis_dokumen }}</td>
+                            <td style="font-size: 0.9rem;">{{ identitas.negara_penerbit }}</td>
+                            <td style="font-size: 0.9rem;">{{ identitas.tanggal_terbit|date:"Y-m-d" }}</td>
+                            <td style="font-size: 0.9rem;">{{ identitas.tanggal_habis|date:"Y-m-d" }}</td>
+                            <td>
+                                <!-- Warna Status Dinamis -->
+                                <span class="badge rounded-pill {% if identitas.status == 'Aktif' %}bg-success{% else %}bg-danger{% endif %}" style="font-weight: 500;">
+                                    {{ identitas.status }}
+                                </span>
+                            </td>
+                            <td class="px-4 text-center">
+                                <button class="btn btn-sm text-secondary me-1" title="Edit" data-bs-toggle="modal" data-bs-target="#modalEdit{{ identitas.nomor_dokumen|slugify }}">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </button>
+                                <button class="btn btn-sm text-danger" title="Hapus" data-bs-toggle="modal" data-bs-target="#modalHapus{{ identitas.nomor_dokumen|slugify }}">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">Belum ada identitas yang didaftarkan.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL TAMBAH IDENTITAS ================= -->
+<div class="modal fade" id="modalTambahIdentitas" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content border-0 shadow rounded-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="tambah_identitas">
+            <div class="modal-header border-0 pb-0 mt-2 px-4">
+                <h5 class="modal-title fw-bold" style="color: #001a38;">Tambah Identitas Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pt-3 pb-2">
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nomor Dokumen</label>
+                    <input type="text" name="nomor_dokumen" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Jenis Dokumen</label>
+                    <select name="jenis_dokumen" class="form-select" required>
+                        <option value="Paspor">Paspor</option>
+                        <option value="KTP">KTP</option>
+                        <option value="SIM">SIM</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Negara Penerbit</label>
+                    <input type="text" name="negara_penerbit" class="form-control" value="Indonesia" required>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Tanggal Terbit</label>
+                        <input type="date" name="tanggal_terbit" class="form-control" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Tanggal Habis</label>
+                        <input type="date" name="tanggal_habis" class="form-control" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4">
+                <button type="submit" class="btn btn-primary px-4 rounded-3" style="background-color: #041E42; border: none;">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================= KUMPULAN MODAL EDIT & HAPUS IDENTITAS ================= -->
+{% for identitas in identitas_list %}
+<div class="modal fade" id="modalEdit{{ identitas.nomor_dokumen|slugify }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content border-0 shadow rounded-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_identitas">
+            
+            <div class="modal-header border-0 pb-0 mt-2 px-4">
+                <h5 class="modal-title fw-bold" style="color: #001a38;">Edit Identitas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pt-3 pb-2">
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Nomor Dokumen</label>
+                    <!-- Nomor Dokumen dibuat READONLY agar tidak bisa diedit sesuai spesifikasi -->
+                    <input type="text" name="nomor_dokumen" class="form-control bg-light" value="{{ identitas.nomor_dokumen }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Jenis Dokumen</label>
+                    <select name="jenis_dokumen" class="form-select" required>
+                        <option value="Paspor" {% if identitas.jenis_dokumen == 'Paspor' %}selected{% endif %}>Paspor</option>
+                        <option value="KTP" {% if identitas.jenis_dokumen == 'KTP' %}selected{% endif %}>KTP</option>
+                        <option value="SIM" {% if identitas.jenis_dokumen == 'SIM' %}selected{% endif %}>SIM</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Negara Penerbit</label>
+                    <input type="text" name="negara_penerbit" class="form-control" value="{{ identitas.negara_penerbit }}" required>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Tanggal Terbit</label>
+                        <input type="date" name="tanggal_terbit" class="form-control" value="{{ identitas.tanggal_terbit|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-muted" style="font-size: 0.85rem; font-weight: 600;">Tanggal Habis</label>
+                        <input type="date" name="tanggal_habis" class="form-control" value="{{ identitas.tanggal_habis|date:'Y-m-d' }}" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4">
+                <button type="submit" class="btn btn-primary px-4 rounded-3" style="background-color: #041E42; border: none;">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalHapus{{ identitas.nomor_dokumen|slugify }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content border-0 shadow rounded-4">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="hapus_identitas">
+            <input type="hidden" name="nomor_dokumen_hapus" value="{{ identitas.nomor_dokumen }}">
+            <div class="modal-header border-0 pb-0 mt-2 px-4">
+                <h5 class="modal-title fw-bold" style="color: #001a38;">Hapus Identitas?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 py-3 text-muted" style="font-size: 0.95rem;">
+                Tindakan ini tidak dapat dibatalkan.
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4">
+                <button type="button" class="btn btn-light border rounded-3 px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary rounded-3 px-4" style="background-color: #041E42; border: none;">Hapus</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

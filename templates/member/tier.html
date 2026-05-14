@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+
+<h4 class="fw-bold mb-3">Info Tier</h4>
+
+<!-- ================= PROGRESS ================= -->
+{% if next_tier %}
+<div class="card p-3 mb-4 shadow-sm rounded-4 border-primary">
+
+    <p class="mb-1">
+        Progress ke Tier Berikutnya: <b>{{ next_tier.nama }}</b>
+    </p>
+
+    <small>Total Miles</small>
+
+    <div class="progress mb-2" style="height:8px;">
+        <div class="progress-bar bg-primary"
+             style="width: {{ progress }}%;">
+        </div>
+    </div>
+
+    <div class="text-end small">
+        {{ award_miles|intcomma }} / {{ next_tier.minimal_tier_miles|intcomma }}
+    </div>
+
+</div>
+{% endif %}
+
+<!-- ================= LIST TIER ================= -->
+{% for t in tiers %}
+
+<div class="card p-3 mb-3 shadow-sm rounded-4
+    {% if t.id_tier == current_tier %}border-warning border-3{% endif %}">
+
+    <div class="d-flex align-items-center gap-2 mb-2">
+
+        <!-- nama tier -->
+        <span class="badge bg-secondary">
+            {{ t.nama }}
+        </span>
+
+        <!-- badge current -->
+        {% if t.id_tier == current_tier %}
+            <span class="badge bg-warning text-dark">Tier Anda</span>
+        {% endif %}
+    </div>
+
+    <!-- syarat -->
+    <p class="text-muted small">
+        Min. {{ t.minimal_frekuensi_terbang }} penerbangan -
+        Min. {{ t.minimal_tier_miles|intcomma }} miles
+    </p>
+
+    <!-- BENEFITS -->
+    <div class="small">
+        <p class="mb-1 fw-semibold">Keuntungan:</p>
+        <ul class="mb-0">
+            {% for b in t.benefits %}
+                <li>✔ {{ b }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+
+{% endfor %}
+
+{% endblock %}

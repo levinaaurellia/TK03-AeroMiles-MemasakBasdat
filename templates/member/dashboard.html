@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-4">
+    <div class="mb-5">
+        <h2 class="fw-bold mb-1" style="color: #000;">Dashboard</h2>
+        <p class="text-muted" style="font-size: 1.1rem;">Selamat datang, {{ informasi.nama_lengkap }}</p>
+    </div>
+
+    <div class="mb-4">
+        <div class="card shadow-sm border-0 rounded-4 px-4 py-3">
+            <h4 class="fw-bold mb-4" style="color: #000;">Informasi Pribadi</h4>
+            <div class="row">
+                <div class="col-md-4">
+                    <p class="text-muted mb-0">Nama lengkap:</p>
+                    <p class="fw-bold">{{ informasi.nama_lengkap }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-0">Email:</p>
+                    <p class="fw-bold">{{ informasi.email }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-0">Telepon:</p>
+                    <p class="fw-bold">{{ informasi.telepon }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-0">Kewarganegaraan:</p>
+                    <p class="fw-bold">{{ informasi.kewarganegaraan }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-0">Tanggal Lahir</p>
+                    <p class="fw-bold">{{ informasi.tanggal_lahir|date:'Y-m-d' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 px-4 py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-people text-primary fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Nomor Member</p>
+                        <p class="fw-bold mb-0">{{ informasi.nomor_member }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 px-4 py-3 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-award text-warning fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Tier</p>
+                        <!-- tampilan badge sesuai tier -->
+                        {% if informasi.tier == 'Gold' %}
+                            <span class="badge text-bg-warning">Gold</span>
+                        {% elif informasi.tier == 'Silver' %}
+                            <span class="badge text-bg-info">Silver</span>
+                        {% elif informasi.tier == 'Bronze' %}
+                            <span class="badge text-bg-secondary">Bronze</span>
+                        {% else %}
+                            <span class="badge text-bg-dark">Platinum</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 px-4 py-3 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-airplane text-info fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Total Miles</p>
+                        <p class="fw-bold mb-0">{{ informasi.total_miles }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 px-4 py-3 h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-trophy text-success fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Award Miles</p>
+                        <p class="fw-bold mb-0">{{ informasi.award_miles }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 px-4 py-3">
+        <h4 class="fw-bold mb-4">5 Transaksi Terbaru</h4>
+
+        <div class="d-flex flex-column gap-3">
+            {% for transaksi in transaksi %}
+            <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background-color: #f8f9fc;">
+                <div class="d-flex align-items-center gap-3">
+                {% if transaksi.jenis_transaksi == 'Kirim Transfer' or transaksi.jenis_transaksi == 'Terima Transfer' %}
+                    <span class="badge bg-white text-dark border fw-bold px-3 py-2 rounded-pill">Transfer</span>
+                {% else %}
+                    <span class="badge bg-white text-dark border fw-bold px-3 py-2 rounded-pill">{{ transaksi.jenis_transaksi }}</span>
+                {% endif %}
+                <span class="text-dark" style="font-size: 0.95rem;">{{ transaksi.timestamp|date:"Y-m-d H:i" }}</span>
+                </div>
+                {% if transaksi.jenis_transaksi == 'Kirim Transfer' or transaksi.jenis_transaksi == 'Redeem' %}
+                    <span class="text-danger fw-semibold" style="font-size: 0.95rem;">-{{ transaksi.miles }} miles</span>
+                {% else %}
+                    <span class="text-success fw-semibold" style="font-size: 0.95rem;">+{{ transaksi.miles }} miles</span>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p class="text-muted">Belum ada transaksi terbaru.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h4 class="fw-bold">Redeem Hadiah</h4>
+<p class="text-muted">Award Miles tersedia: <b>{{ award_miles }}</b></p>
+
+<div class="mb-3">
+    <button class="btn btn-outline-primary btn-sm" onclick="showTab('katalog')">Katalog Hadiah</button>
+    <button class="btn btn-outline-secondary btn-sm" onclick="showTab('riwayat')">Riwayat Redeem</button>
+</div>
+
+<!-- ================= KATALOG ================= -->
+<div id="katalog">
+    {% for item in katalog %}
+    <div class="card p-3 mb-3 shadow-sm rounded-4" style="max-width:400px;">
+        
+        <div class="badge bg-primary mb-2">
+            {{ item.kode_hadiah }} - {{ item.nama_maskapai|default:"-" }}
+        </div>
+
+        <h5 class="fw-bold">{{ item.nama }}</h5>
+        <p class="text-muted small">{{ item.deskripsi }}</p>
+
+        <p class="mb-1"><b>{{ item.miles }}</b> miles</p>
+        <p class="text-muted small">
+            Periode: {{ item.valid_start_date }} - {{ item.program_end }}
+        </p>
+
+        <form method="POST" action="{% url 'proses_redeem' %}">
+            {% csrf_token %}
+            <input type="hidden" name="kode_hadiah" value="{{ item.kode_hadiah }}">
+            <button class="btn btn-danger btn-sm">REDEEM</button>
+        </form>
+
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ================= RIWAYAT ================= -->
+<div id="riwayat" style="display:none;">
+    <div class="card p-3 shadow-sm rounded-4">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Hadiah</th>
+                    <th>Waktu</th>
+                    <th>Miles</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in riwayat %}
+                <tr>
+                    <td>{{ r.nama }}</td>
+                    <td>{{ r.timestamp }}</td>
+                    <td class="text-danger">-{{ r.miles }}</td>
+                    <td>🔒</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function showTab(tab){
+    document.getElementById('katalog').style.display = (tab=='katalog') ? 'block':'none';
+    document.getElementById('riwayat').style.display = (tab=='riwayat') ? 'block':'none';
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-4">
+    <div class="mb-5">
+        <h2 class="fw-bold mb-1" style="color: #000;">Dashboard</h2>
+        <p class="text-muted" style="font-size: 1.1rem;">Selamat datang, {{ informasi.nama_lengkap }}</p>
+    </div>
+
+    <div class="mb-4">
+        <div class="card shadow-sm border-0 rounded-4 px-4 py-3">
+            <h4 class="fw-bold mb-4" style="color: #000;">Informasi Pribadi</h4>
+            <div class="row">
+                <div class="col-md-4">
+                    <p class="text-muted mb-0">Nama lengkap:</p>
+                    <p class="fw-bold">{{ informasi.nama_lengkap }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-0">Email:</p>
+                    <p class="fw-bold">{{ informasi.email }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-0">Telepon:</p>
+                    <p class="fw-bold">{{ informasi.telepon }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-0">Kewarganegaraan:</p>
+                    <p class="fw-bold">{{ informasi.kewarganegaraan }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-0">Tanggal Lahir</p>
+                    <p class="fw-bold">{{ informasi.tanggal_lahir|date:'Y-m-d' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4" >
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 px-4 py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-people text-primary fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">ID Staf</p>
+                        <p class="fw-bold mb-0">{{ informasi.id_staf }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 px-4 py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-airplane text-info fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Maskapai</p>
+                        <p class="fw-bold mb-0">{{ informasi.nama_maskapai }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 px-4 py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-clock text-warning fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Klaim Menunggu</p>
+                        <p class="fw-bold mb-0">{{ klaim.total_menunggu }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 px-4 py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-check2-circle text-success fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Klaim disetujui</p>
+                        <p class="fw-bold mb-0">{{ klaim.total_disetujui }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 px-4 py-3">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px; min-width: 60px;">
+                        <i class="bi bi-ban text-danger fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-0" style="font-size: 0.85rem;">Klaim Ditolak</p>
+                        <p class="fw-bold mb-0">{{ klaim.total_ditolak }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

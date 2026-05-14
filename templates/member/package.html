@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+
+<h4 class="fw-bold">Beli Award Miles Package</h4>
+<p class="text-muted">Award Miles saat ini: <b>{{ award_miles }}</b></p>
+
+<div class="d-flex gap-3 flex-wrap">
+
+{% for p in packages %}
+<div class="card p-3 shadow-sm rounded-4" style="width:200px;">
+
+    <div class="text-end">
+        <span class="badge bg-primary">{{ p.id_package }}</span>
+    </div>
+
+    <h5 class="fw-bold">{{ p.jumlah_miles|intcomma }}</h5>
+    <p class="text-muted small">Award Miles</p>
+
+    <p class="fw-bold">Rp {{ p.harga_paket|intcomma }}</p>
+
+    <button class="btn btn-primary w-100"
+        onclick="openModal('{{ p.id }}','{{ p.jumlah_award_miles }}','{{ p.harga_paket }}')">
+        Beli
+    </button>
+
+</div>
+{% endfor %}
+
+</div>
+
+<!-- ================= MODAL ================= -->
+<div id="modalBeli" class="modal fade" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content p-3">
+
+        <h5 class="fw-bold">Konfirmasi Pembelian</h5>
+        <p class="text-muted">Anda akan membeli paket miles berikut:</p>
+
+        <p>Award Miles: <b id="modalMiles"></b></p>
+        <p>Harga: <b id="modalHarga"></b></p>
+
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+
+            <form method="POST" action="{% url 'beli_package' %}">
+                {% csrf_token %}
+                <input type="hidden" name="id_package" id="modalId">
+                <button class="btn btn-primary">Konfirmasi Pembelian</button>
+            </form>
+        </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal(id, miles, harga){
+    document.getElementById('modalId').value = id;
+    document.getElementById('modalMiles').innerText = '+' + miles;
+    document.getElementById('modalHarga').innerText = 'Rp ' + harga;
+
+    var modal = new bootstrap.Modal(document.getElementById('modalBeli'));
+    modal.show();
+}
+</script>
+
+{% endblock %}

@@ -1144,13 +1144,12 @@ def tier_view(request):
 
     with connection.cursor() as cursor:
 
-        # ambil data member
         cursor.execute("""
-            SELECT award_miles, id_tier
+            SELECT total_miles, id_tier
             FROM MEMBER
             WHERE email = %s
         """, [email])
-        award_miles, current_tier = cursor.fetchone()
+        total_miles, current_tier = cursor.fetchone()
 
         # ambil semua tier
         cursor.execute("""
@@ -1194,18 +1193,18 @@ def tier_view(request):
 
     next_tier = None
     for t in tiers:
-        if award_miles < t['minimal_tier_miles']:
+        if total_miles < t['minimal_tier_miles']:
             next_tier = t
             break
 
     progress = 0
     if next_tier:
-        progress = int((award_miles / next_tier['minimal_tier_miles']) * 100)
+        progress = int((total_miles / next_tier['minimal_tier_miles']) * 100)
 
     return render(request, 'member/tier.html', {
         'tiers': tiers,
         'current_tier': current_tier,
-        'award_miles': award_miles,
+        'total_miles': total_miles, 
         'next_tier': next_tier,
         'progress': progress
     })

@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
-# exit on error
-set -o errexit
-
+# Instal requirements
 pip install -r requirements.txt
 
-python manage.py collectstatic --no-input
+# Kumpulkan file statis
+python manage.py collectstatic --noinput --clear
+
+# Jalankan migrasi database
 python manage.py migrate

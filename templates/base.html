@@ -14,73 +14,61 @@
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-custom">
-    <div class="container d-flex flex-column">
-
-        <!-- ===== BARIS ATAS ===== -->
-        <div class="d-flex w-100 align-items-center">
-
-            <!-- Logo -->
-            <a class="navbar-brand" href="#">✈ AeroMiles</a>
-
-            <!-- MENU -->
-            <div class="d-flex flex-grow-1">
-
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">✈ AeroMiles</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <!-- ===== GUEST ===== -->
                 {% if not request.session.email %}
-                    <a class="nav-link" href="{% url 'login' %}">Login</a>
-                    <a class="nav-link" href="{% url 'register' %}">Registrasi</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'login' %}active{% endif %}" href="{% url 'login' %}">Login</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'register' %}active{% endif %}" href="{% url 'register' %}">Registrasi</a>
                 {% endif %}
-
                 <!-- ===== MEMBER ===== -->
                 {% if request.session.email and request.session.role == 'member' %}
-                    <a class="nav-link active" href="{% url 'dashboard_member' %}">Dashboard</a>
-                    <a class="nav-link" href="{% url 'identitas_saya' %}">Identitas Saya</a>
-                    <a class="nav-link" href="{% url 'klaim_miles' %}">Klaim Miles</a>
-                    <a class="nav-link" href="{% url 'transfer_miles' %}"">Transfer Miles</a>
-                    <a class="nav-link" href="{% url 'redeem' %}">Redeem Hadiah</a>
-                    <a class="nav-link" href="{% url 'package' %}">Beli Package</a>
-                    <a class="nav-link" href="{% url 'tier' %}">Info Tier</a>
-                    <a class="nav-link" href="{% url 'pengaturan_profil' %}">Pengaturan Profil</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_member' %}active{% endif %}" href="{% url 'dashboard_member' %}">Dashboard</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'identitas_saya' %}active{% endif %}" href="{% url 'identitas_saya' %}">Identitas Saya</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'klaim_miles' %}active{% endif %}" href="{% url 'klaim_miles' %}">Klaim Miles</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'transfer_miles' %}active{% endif %}" href="{% url 'transfer_miles' %}">Transfer Miles</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'redeem' %}active{% endif %}" href="{% url 'redeem' %}">Redeem Hadiah</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'package' %}active{% endif %}" href="{% url 'package' %}">Beli Package</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'tier' %}active{% endif %}" href="{% url 'tier' %}">Info Tier</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'pengaturan_profil' %}active{% endif %}" href="{% url 'pengaturan_profil' %}">Pengaturan Profil</a>
                 {% endif %}
-
                 <!-- ===== STAF ===== -->
                 {% if request.session.email and request.session.role == 'staf' %}
-                    <a class="nav-link active" href="{% url 'dashboard_staf' %}">Dashboard</a>
-                    <a class="nav-link" href="{% url 'kelola_member' %}">Kelola Member</a>
-                    <a class="nav-link" href="{% url 'kelola_klaim' %}">Kelola Klaim</a>
-                    <a class="nav-link" href="{% url 'kelola_hadiah' %}">Kelola Hadiah & Penyedia</a>
-                    <a class="nav-link" href="{% url 'kelola_mitra' %}">Kelola Mitra</a>
-                    <a class="nav-link" href="{% url 'laporan' %}">Laporan Transaksi</a>
-                    <a class="nav-link" href="{% url 'pengaturan_profil' %}">Pengaturan Profil</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_staf' %}active{% endif %}" href="{% url 'dashboard_staf' %}">Dashboard</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'kelola_member' %}active{% endif %}" href="{% url 'kelola_member' %}">Kelola Member</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'kelola_klaim' %}active{% endif %}" href="{% url 'kelola_klaim' %}">Kelola Klaim</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'kelola_hadiah' %}active{% endif %}" href="{% url 'kelola_hadiah' %}">Kelola Hadiah & Penyedia</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'kelola_mitra' %}active{% endif %}" href="{% url 'kelola_mitra' %}">Kelola Mitra</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'laporan' %}active{% endif %}" href="{% url 'laporan' %}">Laporan Transaksi</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'pengaturan_profil' %}active{% endif %}" href="{% url 'pengaturan_profil' %}">Pengaturan Profil</a>
                 {% endif %}
-
-            </div>
-
-            <!-- ===== LOGOUT ===== -->
-            {% if request.session.email %}
-                <a class="nav-link logout" href="{% url 'logout' %}">
-                    <i class="bi bi-box-arrow-right"></i> Logout
-                </a>
-            {% endif %}
-
-        </div>
-
-        <!-- ===== INFO USER ===== -->
-        {% if request.session.email %}
-        <div class="w-100">
-            <div class="user-info">
-                Masuk sebagai <b>{{ request.session.email }}</b> -
-                {% if request.session.role == 'staf' %}
-                    Staff
-                {% else %}
-                    Member
+            </ul>
+            <span class="d-flex">
+                {% if request.session.email %}
+                    <a class="nav-link logout" href="{% url 'logout' %}">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
                 {% endif %}
-            </div>
+            </span>
         </div>
-        {% endif %}
-
     </div>
 </nav>
+
+{% if request.session.email %}
+    <div class="container-fluid user-info navbar-custom">
+        Masuk sebagai <b>{{ request.session.email }}</b> -
+        {% if request.session.role == 'staf' %}
+            Staff
+        {% else %}
+            Member
+        {% endif %}
+    </div>
+{% endif %}
 
 <main class="container mt-4">
     {% block content %}

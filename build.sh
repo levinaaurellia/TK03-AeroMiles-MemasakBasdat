@@ -1,8 +1,10 @@
-# Instal requirements
-pip install -r requirements.txt
+#!/bin/bash
+
+# Instal requirements dengan bypass aturan environment
+python3 -m pip install -r requirements.txt --break-system-packages
 
 # Kumpulkan file statis
-python manage.py collectstatic --noinput --clear
+python3 manage.py collectstatic --noinput --clear
 
 # Jalankan migrasi database
-python manage.py migrate
+python3 manage.py migrate

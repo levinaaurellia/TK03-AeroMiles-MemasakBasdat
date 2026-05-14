@@ -753,24 +753,14 @@ def klaim_miles(request):
                 nomor_tiket = request.POST.get('nomor_tiket')
                 pnr = request.POST.get('pnr')
 
-                try:
-                    # Ambil id terakhir untuk auto-increment manual
-                    cursor.execute("SELECT MAX(id) FROM CLAIM_MISSING_MILES")
-                    max_id = cursor.fetchone()[0]
-                    id_klaim = int(max_id) + 1 if max_id else 1
+                # Generate ID klaim
+                cursor.execute("SELECT MAX(id) FROM CLAIM_MISSING_MILES")
+                id_klaim = int(cursor.fetchone()[0]) + 1
 
-                    # Pastikan ada tanda kurung () mengapit nama kolom
-                    cursor.execute("""
-                        INSERT INTO CLAIM_MISSING_MILES (id, email_member, maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, status_penerimaan, timestamp)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-                    """, [id_klaim, email_user, kode_maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, "Menunggu"])
-                    
-                    messages.success(request, 'Klaim berhasil diajukan!')
-                
-                # BAGIAN PENTING: Menangkap penolakan jika terjadi klaim ganda dari Trigger Biru
-                except Exception as e:
-                    error_message = str(e).split("CONTEXT")[0].replace("RAISE EXCEPTION: ", "").strip()
-                    messages.error(request, error_message)
+                cursor.execute("""
+                    INSERT INTO CLAIM_MISSING_MILES id, email_member, maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, status_penerimaan, timestamp
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                """, [id_klaim, email_user, kode_maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, "Menunggu"])
 
             elif action == 'update':
                 kode_maskapai = request.POST.get('kode_maskapai')
@@ -849,9 +839,10 @@ def klaim_miles(request):
 def kelola_klaim(request):
     email_user = request.session.get('email')
 
-    status_filter = request.GET.get('status', 'semua')
-    maskapai_filter = request.GET.get('maskapai', 'semua')
-    tanggal_urut = request.GET.get('tanggal', 'terbaru')
+    status_filter = request.GET.get('status', '')
+    maskapai_filter = request.GET.get('maskapai', '')
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
 
     query = """
         SELECT id, CONCAT(first_mid_name, ' ', last_name) AS nama_member, email_member, maskapai, bandara_asal, bandara_tujuan, 
@@ -863,18 +854,20 @@ def kelola_klaim(request):
     """
     params = []
 
-    if status_filter != "semua":
+    if status_filter:
         query += " AND status_penerimaan = %s"
         params.append(status_filter.title())
 
-    if maskapai_filter != 'semua':
+    if maskapai_filter:
         query += " AND maskapai = %s"
         params.append(maskapai_filter)
     
-    if tanggal_urut == 'terlama':
-        query += " ORDER BY timestamp ASC"
-    else:
-        query += " ORDER BY timestamp DESC"
+    if start_date and end_date:
+        query += " AND DATE(timestamp) BETWEEN %s AND %s"
+        params.extend([start_date, end_date])
+    
+    # Urutkan hasil klaim berdasarkan tanggal pengajuan terbaru
+    query += " ORDER BY timestamp DESC"
 
     with connection.cursor() as cursor:
         if request.method == 'POST':
@@ -882,40 +875,18 @@ def kelola_klaim(request):
             id_klaim = request.POST.get('id_klaim')
 
             if action == "setujui":
-                # 1. Update status klaim
                 cursor.execute("""
                     UPDATE CLAIM_MISSING_MILES
-                    SET status_penerimaan='Disetujui', email_staf=%s 
+                    SET status_penerimaan="Disetujui", email_staf=%s 
                     WHERE id = %s
                 """, [email_user, id_klaim])
-                
-                # 2. SIMULASI PENAMBAHAN MILES AGAR TRIGGER NAIK TIER TERPANCING
-                cursor.execute("SELECT email_member FROM CLAIM_MISSING_MILES WHERE id = %s", [id_klaim])
-                email_member_klaim = cursor.fetchone()[0]
-                
-                cursor.execute("""
-                    UPDATE MEMBER 
-                    SET total_miles = total_miles + 50000 
-                    WHERE email = %s
-                """, [email_member_klaim])
-                
-                # 3. Menangkap Notice ganti tier
-                notices = connection.connection.notices
-                if notices:
-                    for notice in notices:
-                        if 'SUKSES: Tier Member' in notice:
-                            pesan_sukses = notice.replace("NOTICE:  ", "").strip()
-                            messages.success(request, pesan_sukses)
-                else:
-                    messages.success(request, "Klaim berhasil disetujui.")
             
             elif action == "tolak":
                 cursor.execute("""
                     UPDATE CLAIM_MISSING_MILES
-                    SET status_penerimaan='Ditolak', email_staf=%s 
+                    SET status_penerimaan="Ditolak", email_staf=%s 
                     WHERE id = %s
                 """, [email_user, id_klaim])
-                messages.success(request, "Klaim ditolak.")
             
             return redirect('kelola_klaim')
             
@@ -935,7 +906,8 @@ def kelola_klaim(request):
         "maskapai_list": maskapai_list,
         "current_status": status_filter,
         "current_maskapai": maskapai_filter,
-        "current_tanggal": tanggal_urut
+        "current_start_date": start_date,
+        "current_end_date": end_date
     }
 
     return render(request, 'staf/kelola_klaim.html', context)

@@ -84,6 +84,13 @@ DB_USER = os.environ.get('DB_USER')
 DB_PASSWORD = os.environ.get('DB_PASSWORD')
 DB_HOST = os.environ.get('DB_HOST')
 
+DB_OPTIONS = {
+    'options': '-c search_path=aeromiles_mb,public'
+}
+
+if not DEBUG:
+    DB_OPTIONS['sslmode'] = 'require'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -92,10 +99,7 @@ DATABASES = {
         'PASSWORD': DB_PASSWORD,
         'HOST': DB_HOST,
         'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require',
-            'options': '-c search_path=aeromiles_mb,public'
-        },
+        'OPTIONS': DB_OPTIONS,
     }
 }
 

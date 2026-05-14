@@ -94,6 +94,7 @@ DATABASES = {
         'PORT': '5432',
         'OPTIONS': {
             'sslmode': 'require',
+            'options': '-c search_path=aeromiles_mb,public'
         },
     }
 }

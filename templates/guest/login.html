@@ -1,27 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055; margin-top: 60px;">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="toast align-items-center text-white {% if message.tags == 'error' %}bg-danger{% else %}bg-success{% endif %} border-0" 
-                role="alert" aria-live="assertive" aria-atomic="true" 
-                data-bs-delay="4000"> <div class="d-flex">
-                    <div class="toast-body fw-medium" style="font-size: 0.95rem;">
-                        {% if message.tags == 'error' %}
-                            <i class="bi bi-exclamation-circle me-2"></i>
-                        {% else %}
-                            <i class="bi bi-check-circle me-2"></i>
-                        {% endif %}
-                        
-                        {{ message }}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>
-        {% endfor %}
-    {% endif %}
-</div>
 <div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: calc(100vh - 130px);">
     <div class="text-center mb-4">
         <div class="text-white rounded d-inline-flex justify-content-center align-items-center mb-2 fs-2" style="width: 65px; height: 65px; background: linear-gradient(90deg, #002244, #003366);">

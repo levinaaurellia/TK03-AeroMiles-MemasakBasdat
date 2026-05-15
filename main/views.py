@@ -753,14 +753,21 @@ def klaim_miles(request):
                 nomor_tiket = request.POST.get('nomor_tiket')
                 pnr = request.POST.get('pnr')
 
-                # Generate ID klaim
-                cursor.execute("SELECT MAX(id) FROM CLAIM_MISSING_MILES")
-                id_klaim = int(cursor.fetchone()[0]) + 1
+                try:
+                    # Generate ID klaim
+                    cursor.execute("SELECT MAX(id) FROM CLAIM_MISSING_MILES")
+                    max_id = cursor.fetchone()[0]
+                    id_klaim = int(max_id) + 1 if max_id else 1
 
-                cursor.execute("""
-                    INSERT INTO CLAIM_MISSING_MILES id, email_member, maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, status_penerimaan, timestamp
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-                """, [id_klaim, email_user, kode_maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, "Menunggu"])
+                    cursor.execute("""
+                        INSERT INTO CLAIM_MISSING_MILES (id, email_member, maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, status_penerimaan, timestamp)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                    """, [id_klaim, email_user, kode_maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, "Menunggu"])
+                    
+                    messages.success(request, "Klaim berhasil diajukan!")
+                except Exception as e:
+                    error_message = str(e).split("CONTEXT")[0]
+                    messages.error(request, error_message)
 
             elif action == 'update':
                 kode_maskapai = request.POST.get('kode_maskapai')

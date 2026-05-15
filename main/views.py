@@ -754,15 +754,10 @@ def klaim_miles(request):
                 pnr = request.POST.get('pnr')
 
                 try:
-                    # Generate ID klaim
-                    cursor.execute("SELECT MAX(id) FROM CLAIM_MISSING_MILES")
-                    max_id = cursor.fetchone()[0]
-                    id_klaim = int(max_id) + 1 if max_id else 1
-
                     cursor.execute("""
-                        INSERT INTO CLAIM_MISSING_MILES (id, email_member, maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, status_penerimaan, timestamp)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-                    """, [id_klaim, email_user, kode_maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, "Menunggu"])
+                        INSERT INTO CLAIM_MISSING_MILES (email_member, maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, status_penerimaan, timestamp)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                    """, [email_user, kode_maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan, flight_number, nomor_tiket, kelas_kabin, pnr, "Menunggu"])
                     
                     messages.success(request, "Klaim berhasil diajukan!")
                 except Exception as e:
@@ -1234,11 +1229,16 @@ def tier_view(request):
                 'Dedicated hotline'
             ]
 
-    next_tier = None
-    for t in tiers:
-        if total_miles < t['minimal_tier_miles']:
-            next_tier = t
-            break
+    next_tier = current_tier
+    current_minimal_miles = next((t['minimal_tier_miles'] for t in tiers if t['id_tier'] == current_tier), None)
+    if current_minimal_miles is not None:
+        for t in tiers:
+            if t['minimal_tier_miles'] > current_minimal_miles:
+                next_tier = t
+                break
+
+    progress = int((min(total_miles, next_tier['minimal_tier_miles']) / next_tier['minimal_tier_miles']) * 100)
+    
 
     progress = 0
     if next_tier:

@@ -892,7 +892,7 @@ def kelola_klaim(request):
                     notices = connection.connection.notices
                     if notices:
                         for notice in notices:
-                            messages.success(request, notice.message)
+                            messages.success(request, str(notice))
                         connection.connection.notices.clear()
                     else:
                         messages.success(request, "Klaim berhasil disetujui.")

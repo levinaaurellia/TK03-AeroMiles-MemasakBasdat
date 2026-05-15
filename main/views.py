@@ -883,11 +883,20 @@ def kelola_klaim(request):
 
             try:
                 if action == "setujui":
+                    cursor.execute("SELECT email_member FROM CLAIM_MISSING_MILES WHERE id = %s", [id_klaim])
+                    email_member_klaim = cursor.fetchone()[0]
+
                     cursor.execute("""
                         UPDATE CLAIM_MISSING_MILES
                         SET status_penerimaan = 'Disetujui', email_staf = %s 
                         WHERE id = %s
                     """, [email_user, id_klaim])
+                    
+                    cursor.execute("""
+                        UPDATE MEMBER 
+                        SET total_miles = total_miles + 1000 
+                        WHERE email = %s
+                    """, [email_member_klaim])
                     
                     notices = connection.connection.notices
                     if notices:

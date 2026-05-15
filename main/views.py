@@ -978,9 +978,6 @@ def transfer_miles(request):
                             messages.error(request, 'Email penerima tidak ditemukan.')
                             return redirect('transfer_miles')
                         
-                        # Kalau sudah valid, langsung eksekusi INSERT ke tabel TRANSFER.
-                        # Validasi saldo akan dilakukan di trigger DB trg_cek_saldo_transfer
-                        # update saldo pengirim & penerima akan dilakukan di trigger DB trg_proses_transfer_miles
                         cursor.execute("""
                             INSERT INTO TRANSFER (
                                 email_member_1,
@@ -997,8 +994,13 @@ def transfer_miles(request):
                             catatan
                         ])
 
-                        messages.success(request, 'Transfer miles berhasil dilakukan!')
-                        return redirect('transfer_miles')
+                        notices = connection.connection.notices
+                        if notices:
+                            for notice in notices:
+                                messages.success(request, str(notice))
+                            connection.connection.notices.clear()
+                        else:
+                            messages.success(request, 'Transfer miles berhasil dilakukan!')
 
                     except Exception as e:
                         error_message = str(e).split("CONTEXT")[0]
@@ -1100,13 +1102,19 @@ def proses_redeem(request):
 
         with connection.cursor() as cursor:
             try:
-                # hanya insert ke tabel REDEEM, update award miles akan otomatis karena trigger DB
                 cursor.execute("""
                     INSERT INTO REDEEM (email_member, kode_hadiah, timestamp)
                     VALUES (%s, %s, NOW())
                 """, [email, kode_hadiah])
                 
-                messages.success(request, 'Redeem hadiah berhasil!')
+                notices = connection.connection.notices
+                if notices:
+                    for notice in notices:
+                        messages.success(request, str(notice))
+                    connection.connection.notices.clear()
+                else:
+                    messages.success(request, 'Redeem hadiah berhasil!')
+                    
             except Exception as e:
                 error_message = str(e).split("CONTEXT")[0]
                 messages.error(request, error_message)
@@ -1145,14 +1153,20 @@ def beli_package(request):
 
         with connection.cursor() as cursor:
             try:
-                # hanya dilakukan insert, update award miles akan otomatis karena trigger DB
                 cursor.execute("""
                     INSERT INTO MEMBER_AWARD_MILES_PACKAGE 
                     (email_member, id_award_miles_package, timestamp)
                     VALUES (%s, %s, NOW())
                 """, [email, id_package])
 
-                messages.success(request, 'Pembelian package berhasil!')
+                notices = connection.connection.notices
+                if notices:
+                    for notice in notices:
+                        messages.success(request, str(notice))
+                    connection.connection.notices.clear()
+                else:
+                    messages.success(request, 'Pembelian package berhasil!')
+
             except Exception as e:
                 error_message = str(e).split("CONTEXT")[0]
                 messages.error(request, error_message)

@@ -59,13 +59,13 @@
                         <p class="text-muted mb-0" style="font-size: 0.85rem;">Tier</p>
                         <!-- tampilan badge sesuai tier -->
                         {% if informasi.tier == 'Gold' %}
-                            <span class="badge text-bg-warning">Gold</span>
+                            <span class="badge rounded-pill text-bg-warning">Gold</span>
                         {% elif informasi.tier == 'Silver' %}
-                            <span class="badge text-bg-info">Silver</span>
+                            <span class="badge rounded-pill text-bg-secondary">Silver</span>
                         {% elif informasi.tier == 'Bronze' %}
-                            <span class="badge text-bg-secondary">Bronze</span>
+                            <span class="badge rounded-pill text-bg-primary">Bronze</span>
                         {% else %}
-                            <span class="badge text-bg-dark">Platinum</span>
+                            <span class="badge rounded-pill text-bg-dark text-white">Platinum</span>
                         {% endif %}
                     </div>
                 </div>

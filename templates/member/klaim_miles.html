@@ -64,11 +64,11 @@
                             <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ c.kelas_kabin }}</td>
                             <td class="py-3" style="font-size: 0.9rem; color: #000;">
                                 {% if c.status_penerimaan == 'Menunggu' %}
-                                    <span class="badge bg-warning text-dark">Menunggu</span>
+                                    <span class="badge rounded-pill bg-warning text-dark">Menunggu</span>
                                 {% elif c.status_penerimaan == 'Disetujui' %}
-                                    <span class="badge bg-success">Disetujui</span>
+                                    <span class="badge rounded-pill bg-success">Disetujui</span>
                                 {% else %}
-                                    <span class="badge bg-danger">Ditolak</span>
+                                    <span class="badge rounded-pill bg-danger">Ditolak</span>
                                 {% endif %}
                             </td>
                             <td class="py-3" style="font-size: 0.9rem; color: #000;">{{ c.tanggal_pengajuan|date:'Y-m-d H:i:s' }}</td>

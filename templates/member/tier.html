@@ -36,13 +36,19 @@
     <div class="d-flex align-items-center gap-2 mb-2">
 
         <!-- nama tier -->
-        <span class="badge bg-secondary">
-            {{ t.nama }}
-        </span>
+        {% if t.nama == 'Gold' %}
+            <span class="badge rounded-pill text-bg-warning">Gold</span>
+        {% elif t.nama == 'Silver' %}
+            <span class="badge rounded-pill text-bg-secondary">Silver</span>
+        {% elif t.nama == 'Bronze' %}
+            <span class="badge rounded-pill text-bg-primary">Bronze</span>
+        {% else %}
+            <span class="badge rounded-pill text-bg-dark text-white">Platinum</span>
+        {% endif %}
 
         <!-- badge current -->
         {% if t.id_tier == current_tier %}
-            <span class="badge bg-warning text-dark">Tier Anda</span>
+            <span class="badge rounded-pill bg-warning text-dark">Tier Anda</span>
         {% endif %}
     </div>
 

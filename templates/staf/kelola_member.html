@@ -55,12 +55,15 @@
                             <td style="font-size: 0.9rem;">{{ member.nama_lengkap }}</td>
                             <td style="font-size: 0.9rem;">{{ member.email }}</td>
                             <td>
-                                <span class="badge rounded-pill 
-                                    {% if member.nama_tier == 'Gold' %}bg-warning text-dark
-                                    {% elif member.nama_tier == 'Silver' %}bg-secondary
-                                    {% else %}bg-primary{% endif %}" style="font-weight: 500;">
-                                    {{ member.nama_tier }}
-                                </span>
+                                {% if member.nama_tier == 'Gold' %}
+                                    <span class="badge rounded-pill text-bg-warning">Gold</span>
+                                {% elif member.nama_tier == 'Silver' %}
+                                    <span class="badge rounded-pill text-bg-secondary">Silver</span>
+                                {% elif member.nama_tier == 'Bronze' %}
+                                    <span class="badge rounded-pill text-bg-primary">Bronze</span>
+                                {% else %}
+                                    <span class="badge rounded-pill text-bg-dark text-white">Platinum</span>
+                        {% endif %}
                             </td>
                             <td class="text-end" style="font-size: 0.9rem;">{{ member.total_miles|default:0 }}</td>
                             <td class="text-end" style="font-size: 0.9rem;">{{ member.award_miles|default:0 }}</td>

@@ -41,9 +41,9 @@
                             <td class="align-middle py-3" style="font-size: 0.9rem; color: #000;">{{ t.catatan|default:"-" }}</td>
                             <td class="align-middle py-3" style="font-size: 0.9rem; color: #000;">
                                 {% if t.tipe == 'Kirim' %}
-                                <span class="badge bg-white text-primary border border-primary">{{ t.tipe }}</span>
+                                <span class="badge rounded-pill bg-white text-primary border border-primary">{{ t.tipe }}</span>
                                 {% else %}
-                                <span class="badge bg-primary text-white">{{ t.tipe }}</span>
+                                <span class="badge rounded-pill bg-primary text-white">{{ t.tipe }}</span>
                                 {% endif %}
                             </td>
                             

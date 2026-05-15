@@ -1354,7 +1354,6 @@ def laporan_transaksi_view(request):
         """)
         total_miles = cursor.fetchone()[0]
 
-        # total redeem bulan ini
         cursor.execute("""
             SELECT COUNT(*)
             FROM REDEEM
@@ -1362,7 +1361,6 @@ def laporan_transaksi_view(request):
         """)
         total_redeem = cursor.fetchone()[0]
 
-        # total claim disetujui
         cursor.execute("""
             SELECT COUNT(*)
             FROM CLAIM_MISSING_MILES
@@ -1370,42 +1368,27 @@ def laporan_transaksi_view(request):
         """)
         total_klaim = cursor.fetchone()[0]
 
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT email, COUNT(*) AS total_transaksi
-            FROM (
 
-                SELECT email_member_1 AS email FROM TRANSFER
-                UNION ALL
-                SELECT email_member_2 FROM TRANSFER
+    top_member = [] 
+    if tab == 'top':
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM top_5_member();") 
+            top_rows = cursor.fetchall()
 
-                UNION ALL
-                SELECT email_member FROM REDEEM
+            notices = connection.connection.notices
+            if notices:
+                for notice in notices:
+                    messages.success(request, str(notice))
+                connection.connection.notices.clear()
 
-                UNION ALL
-                SELECT email_member 
-                FROM CLAIM_MISSING_MILES 
-                WHERE status_penerimaan = 'Disetujui'
-
-                UNION ALL
-                SELECT email_member 
-                FROM MEMBER_AWARD_MILES_PACKAGE
-
-            ) t
-            GROUP BY email
-            ORDER BY total_transaksi DESC
-            LIMIT 10
-        """)
-        top_rows = cursor.fetchall()
-
-    top_member = [
-        {
-            'rank': i + 1,
-            'email': r[0],
-            'total_transaksi': r[1],
-        }
-        for i, r in enumerate(top_rows)
-    ]
+        top_member = [
+            {
+                'rank': i + 1,
+                'email': r[0],         
+                'total_transaksi': r[1],
+            }
+            for i, r in enumerate(top_rows)
+        ]
 
     return render(request, 'staf/laporan.html', {
         'transaksi': transaksi,

@@ -234,7 +234,7 @@
                             <select name="bandara_asal" class="form-select py-2" required>
                                 <option value="" disabled selected>Pilih bandara asal</option>
                                 {% for b in bandara_list %}
-                                <option value="{{ m.iata_code }}">{{ b.iata_code }} - {{ b.nama }}, {{ b.kota }}, {{ b.negara }}</option>
+                                <option value="{{ b.iata_code }}">{{ b.iata_code }} - {{ b.nama }}, {{ b.kota }}, {{ b.negara }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -243,7 +243,7 @@
                             <select name="bandara_tujuan" class="form-select py-2" required>
                                 <option value="" disabled selected>Pilih bandara tujuan</option>
                                 {% for b in bandara_list %}
-                                <option value="{{ m.iata_code }}">{{ b.iata_code }} - {{ b.nama }}, {{ b.kota }}, {{ b.negara }}</option>
+                                <option value="{{ b.iata_code }}">{{ b.iata_code }} - {{ b.nama }}, {{ b.kota }}, {{ b.negara }}</option>
                                 {% endfor %}
                             </select>
                         </div>

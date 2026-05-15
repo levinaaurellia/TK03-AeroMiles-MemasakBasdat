@@ -881,19 +881,32 @@ def kelola_klaim(request):
             action = request.POST.get('action')
             id_klaim = request.POST.get('id_klaim')
 
-            if action == "setujui":
-                cursor.execute("""
-                    UPDATE CLAIM_MISSING_MILES
-                    SET status_penerimaan="Disetujui", email_staf=%s 
-                    WHERE id = %s
-                """, [email_user, id_klaim])
-            
-            elif action == "tolak":
-                cursor.execute("""
-                    UPDATE CLAIM_MISSING_MILES
-                    SET status_penerimaan="Ditolak", email_staf=%s 
-                    WHERE id = %s
-                """, [email_user, id_klaim])
+            try:
+                if action == "setujui":
+                    cursor.execute("""
+                        UPDATE CLAIM_MISSING_MILES
+                        SET status_penerimaan = 'Disetujui', email_staf = %s 
+                        WHERE id = %s
+                    """, [email_user, id_klaim])
+                    
+                    notices = connection.connection.notices
+                    if notices:
+                        for notice in notices:
+                            messages.success(request, notice.message)
+                        connection.connection.notices.clear()
+                    else:
+                        messages.success(request, "Klaim berhasil disetujui.")
+                
+                elif action == "tolak":
+                    cursor.execute("""
+                        UPDATE CLAIM_MISSING_MILES
+                        SET status_penerimaan = 'Ditolak', email_staf = %s 
+                        WHERE id = %s
+                    """, [email_user, id_klaim])
+                    messages.warning(request, "Klaim telah ditolak.")
+
+            except Exception as e:
+                messages.error(request, f"Gagal memproses klaim: {str(e)}")
             
             return redirect('kelola_klaim')
             

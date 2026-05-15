@@ -11,10 +11,10 @@
 <div class="card p-3 shadow-sm rounded-4" style="width:200px;">
 
     <div class="text-end">
-        <span class="badge bg-primary">{{ p.id_package }}</span>
+        <span class="badge bg-primary">PKG-{{ p.id|stringformat:"02d" }}</span> 
     </div>
 
-    <h5 class="fw-bold">{{ p.jumlah_miles|intcomma }}</h5>
+    <h5 class="fw-bold">+{{ p.jumlah_award_miles|intcomma }}</h5>
     <p class="text-muted small">Award Miles</p>
 
     <p class="fw-bold">Rp {{ p.harga_paket|intcomma }}</p>

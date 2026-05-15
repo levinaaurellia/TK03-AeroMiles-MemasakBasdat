@@ -23,24 +23,17 @@ def login(request):
         password = request.POST.get('password')
 
         with connection.cursor() as cursor:
+            try:
+                cursor.execute("""
+                    SELECT verifikasi_login(%s, %s)
+                """, [email, password])
+                
 
-            cursor.execute("""
-                SELECT verifikasi_login(%s, %s)
-            """, [email, password])
-
-            result = cursor.fetchone()[0]
-
-            if result != 'LOGIN BERHASIL':
-
-                messages.error(
-                    request,
-                    result
-                )
-
-                return render(
-                    request,
-                    'guest/login.html'
-                )
+            except Exception as e:
+                error_message = str(e).split("CONTEXT")[0]
+                messages.error(request, error_message)
+                
+                return render(request, 'guest/login.html')
 
             # cek role staf
             cursor.execute("""

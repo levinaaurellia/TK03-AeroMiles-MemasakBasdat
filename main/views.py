@@ -901,7 +901,7 @@ def kelola_klaim(request):
                     notices = connection.connection.notices
                     if notices:
                         for notice in notices:
-                            messages.success(request, str(notice))
+                            messages.success(request, str(notice).replace('NOTICE:', '').strip())
                         connection.connection.notices.clear()
                     else:
                         messages.success(request, "Klaim berhasil disetujui.")
@@ -1006,7 +1006,7 @@ def transfer_miles(request):
                         notices = connection.connection.notices
                         if notices:
                             for notice in notices:
-                                messages.success(request, str(notice))
+                                messages.success(request, str(notice).replace('NOTICE:', '').strip())
                             connection.connection.notices.clear()
                         else:
                             messages.success(request, 'Transfer miles berhasil dilakukan!')
@@ -1119,7 +1119,7 @@ def proses_redeem(request):
                 notices = connection.connection.notices
                 if notices:
                     for notice in notices:
-                        messages.success(request, str(notice))
+                        messages.success(request, str(notice).replace('NOTICE:', '').strip())
                     connection.connection.notices.clear()
                 else:
                     messages.success(request, 'Redeem hadiah berhasil!')
@@ -1171,7 +1171,7 @@ def beli_package(request):
                 notices = connection.connection.notices
                 if notices:
                     for notice in notices:
-                        messages.success(request, str(notice))
+                        messages.success(request, str(notice).replace('NOTICE:', '').strip())
                     connection.connection.notices.clear()
                 else:
                     messages.success(request, 'Pembelian package berhasil!')
@@ -1401,7 +1401,7 @@ def laporan_transaksi_view(request):
             notices = connection.connection.notices
             if notices:
                 for notice in notices:
-                    messages.success(request, str(notice))
+                    messages.success(request, str(notice).replace('NOTICE:', '').strip())
                 connection.connection.notices.clear()
 
         top_member = [
